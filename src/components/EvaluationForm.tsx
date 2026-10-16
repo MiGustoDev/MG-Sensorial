@@ -628,7 +628,7 @@ export const EvaluationForm: React.FC<EvaluationFormProps> = ({ onSavedSuccess }
             }
           }}
           placeholder={placeholder}
-          className="w-full p-3 rounded-xl bg-[#fdfbf7] border border-[#ded4c3] text-xs sm:text-sm text-[#2c2724] placeholder-[#a69c91] focus:bg-white focus:border-[#4f46e5] focus:ring-1 focus:ring-[#4f46e5] resize-none overflow-hidden transition-all shadow-inner"
+          className="w-full p-3 rounded-xl bg-[#fdfbf7] border border-[#ded4c3] text-base sm:text-sm text-[#2c2724] placeholder-[#a69c91] focus:bg-white focus:border-[#4f46e5] focus:ring-1 focus:ring-[#4f46e5] resize-none overflow-hidden transition-all shadow-inner touch-manipulation"
         />
         <p className="text-[10px] text-[#8e857b] mt-1 text-right">
           Opcional • Dejá en blanco si la muestra cumple el estándar
@@ -978,7 +978,7 @@ export const EvaluationForm: React.FC<EvaluationFormProps> = ({ onSavedSuccess }
                 placeholder="Ej. Juan Pérez / Calidad"
                 value={evaluador}
                 onChange={e => setEvaluador(e.target.value)}
-                className={`w-full px-3 py-2.5 rounded-xl glass-input text-xs text-[#2c2724] placeholder-[#a69c91] ${
+                className={`w-full px-3 py-2.5 rounded-xl glass-input text-base sm:text-xs text-[#2c2724] placeholder-[#a69c91] touch-manipulation ${
                   validationAttempt && !evaluador.trim() ? 'border-[#eb5757] ring-1 ring-[#eb5757]' : ''
                 }`}
               />
@@ -999,7 +999,7 @@ export const EvaluationForm: React.FC<EvaluationFormProps> = ({ onSavedSuccess }
                 placeholder="Ej. BATEA-04 / L-24"
                 value={loteBatea}
                 onChange={e => setLoteBatea(e.target.value.toUpperCase())}
-                className={`w-full px-3 py-2.5 rounded-xl glass-input text-xs font-mono font-bold uppercase text-[#4f46e5] placeholder-[#a69c91] ${
+                className={`w-full px-3 py-2.5 rounded-xl glass-input text-base sm:text-xs font-mono font-bold uppercase text-[#4f46e5] placeholder-[#a69c91] touch-manipulation ${
                   validationAttempt && !loteBatea.trim() ? 'border-[#eb5757] ring-1 ring-[#eb5757]' : ''
                 }`}
               />
@@ -1099,7 +1099,7 @@ export const EvaluationForm: React.FC<EvaluationFormProps> = ({ onSavedSuccess }
                     placeholder="Especificar sabor en desarrollo..."
                     value={otroGusto}
                     onChange={e => setOtroGusto(e.target.value)}
-                    className="w-full px-3 py-2.5 rounded-xl glass-input text-xs text-[#2c2724] placeholder-[#a69c91]"
+                    className="w-full px-3 py-2.5 rounded-xl glass-input text-base sm:text-xs text-[#2c2724] placeholder-[#a69c91] touch-manipulation"
                   />
                 </div>
               )}
@@ -1114,7 +1114,7 @@ export const EvaluationForm: React.FC<EvaluationFormProps> = ({ onSavedSuccess }
                 placeholder="Ej. M-01 / CATA-A"
                 value={codigoMuestra}
                 onChange={e => setCodigoMuestra(e.target.value.toUpperCase())}
-                className="w-full px-3 py-2.5 rounded-xl glass-input text-xs font-mono uppercase text-[#2c2724] placeholder-[#a69c91]"
+                className="w-full px-3 py-2.5 rounded-xl glass-input text-base sm:text-xs font-mono uppercase text-[#2c2724] placeholder-[#a69c91] touch-manipulation"
               />
             </div>
           </div>

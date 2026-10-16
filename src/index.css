@@ -3,9 +3,19 @@
 @tailwind utilities;
 
 @layer base {
+  html,
   body {
     @apply bg-[#ebdccb] text-[#2c2724] antialiased selection:bg-[#4f46e5] selection:text-white min-h-screen font-sans;
     -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+  }
+
+  /* Prevenir zoom automático en iOS Safari y Android al tocar cualquier campo */
+  input,
+  textarea,
+  select {
+    font-size: 16px !important;
+    touch-action: manipulation;
   }
 }
 
@@ -26,7 +36,9 @@
   background-color: #fdfbf7;
   border: 1px solid #ded4c3;
   color: #2c2724;
+  font-size: 16px !important;
   transition: all 0.15s ease-in-out;
+  touch-action: manipulation;
 }
 
 .glass-input:focus {
