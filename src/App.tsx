@@ -105,7 +105,7 @@ export function App() {
     <div className="min-h-screen bg-[#ebdccb] text-[#2c2724] flex flex-col selection:bg-[#4f46e5] selection:text-white font-sans">
       {/* Header Mobile Compacto - Rojo Coral (#FC7572) con CATA (#5969E6) */}
       <header className="border-b border-[#e86360] bg-[#FC7572] sticky top-0 z-40 px-3.5 py-2.5 shadow-md">
-        <div className="max-w-xl mx-auto flex items-center justify-between">
+        <div className={`mx-auto flex items-center justify-between transition-all ${view === 'admin' ? 'max-w-xl sm:max-w-3xl md:max-w-5xl lg:max-w-6xl xl:max-w-7xl px-0 sm:px-2' : 'max-w-xl'}`}>
           <div
             onClick={handleBackToForm}
             className="flex items-center gap-3 cursor-pointer group active:scale-[0.98] transition-all"
