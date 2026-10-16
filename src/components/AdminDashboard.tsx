@@ -1,8 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
-import { createPortal } from 'react-dom';
 import type { SensorialEvaluationRecord } from '../types';
 import { formatDisplayDate } from '../types';
 import { supabase } from '../lib/supabase';
+import { AnimatedNumber, AnimatedBar, SmoothModal } from '../utils/gsapAnimations';
 import {
   ArrowLeft,
   Search,
@@ -406,28 +406,36 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
         </div>
       </div>
 
-      {/* KPI Cards Sólidos con alto contraste */}
+      {/* KPI Cards Sólidos con alto contraste y conteo numérico animado */}
       <div className="grid grid-cols-2 sm:grid-cols-5 gap-2.5 sm:gap-3.5 mb-6">
         <div className="bg-[#fdfbf7] p-3.5 sm:p-5 rounded-2xl sm:rounded-3xl border border-[#ded4c3] shadow-xs hover:shadow-md transition-shadow">
           <p className="text-[10px] sm:text-xs font-black text-[#7c746d] uppercase tracking-wider">Muestras Evaluadas</p>
-          <p className="text-2xl sm:text-3xl font-black text-[#2c2724] mt-1">{stats.total}</p>
+          <p className="text-2xl sm:text-3xl font-black text-[#2c2724] mt-1">
+            <AnimatedNumber value={stats.total} />
+          </p>
         </div>
         <div className="bg-[#f0fdf4] p-3.5 sm:p-5 rounded-2xl sm:rounded-3xl border border-[#bbf7d0] shadow-xs hover:shadow-md transition-shadow">
           <p className="text-[10px] sm:text-xs font-black text-[#166534] uppercase tracking-wider">Aprobadas</p>
-          <p className="text-2xl sm:text-3xl font-black text-[#15803d] mt-1">{stats.aprobados}</p>
+          <p className="text-2xl sm:text-3xl font-black text-[#15803d] mt-1">
+            <AnimatedNumber value={stats.aprobados} />
+          </p>
         </div>
         <div className="bg-[#fffbeb] p-3.5 sm:p-5 rounded-2xl sm:rounded-3xl border border-[#fde68a] shadow-xs hover:shadow-md transition-shadow">
           <p className="text-[10px] sm:text-xs font-black text-[#92400e] uppercase tracking-wider">Con Observaciones</p>
-          <p className="text-2xl sm:text-3xl font-black text-[#b45309] mt-1">{stats.observados}</p>
+          <p className="text-2xl sm:text-3xl font-black text-[#b45309] mt-1">
+            <AnimatedNumber value={stats.observados} />
+          </p>
         </div>
         <div className="bg-[#fef2f2] p-3.5 sm:p-5 rounded-2xl sm:rounded-3xl border border-[#fecaca] shadow-xs hover:shadow-md transition-shadow">
           <p className="text-[10px] sm:text-xs font-black text-[#991b1b] uppercase tracking-wider">Rechazadas</p>
-          <p className="text-2xl sm:text-3xl font-black text-[#b91c1c] mt-1">{stats.rechazados}</p>
+          <p className="text-2xl sm:text-3xl font-black text-[#b91c1c] mt-1">
+            <AnimatedNumber value={stats.rechazados} />
+          </p>
         </div>
         <div className="bg-[#eeedfc] p-3.5 sm:p-5 rounded-2xl sm:rounded-3xl border border-[#d7d4f9] shadow-xs hover:shadow-md transition-shadow col-span-2 sm:col-span-1">
           <p className="text-[10px] sm:text-xs font-black text-[#5969E6] uppercase tracking-wider">Gusto General</p>
           <p className="text-2xl sm:text-3xl font-black text-[#4338ca] mt-1 font-mono flex items-baseline gap-1">
-            {stats.promedioGusto} <span className="text-xs text-[#7c746d] font-sans font-bold">/ 5 ★</span>
+            <AnimatedNumber value={stats.promedioGusto} decimals={1} /> <span className="text-xs text-[#7c746d] font-sans font-bold">/ 5 ★</span>
           </p>
         </div>
       </div>
@@ -562,12 +570,13 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                   <span className="w-7 font-black text-[#4a423b] flex items-center gap-0.5">
                     {stars} <Star className="w-2.5 h-2.5 fill-amber-500 text-amber-500" />
                   </span>
-                  <div className="flex-1 h-3 rounded-full bg-[#ede6d8] overflow-hidden">
-                    <div
-                      className={`h-full rounded-full transition-all duration-700 ${
+                  <div className="flex-1">
+                    <AnimatedBar
+                      targetWidthPercent={pct}
+                      barClassName={`h-full rounded-full transition-all ${
                         stars >= 4 ? 'bg-[#5969E6]' : stars === 3 ? 'bg-amber-500' : 'bg-rose-400'
                       }`}
-                      style={{ width: `${pct}%` }}
+                      className="w-full h-3 rounded-full bg-[#ede6d8] overflow-hidden"
                     />
                   </div>
                   <span className="w-12 text-right font-mono font-bold text-[#7c746d]">
@@ -909,15 +918,13 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
       </div>
 
       {/* Modal Cuestionario Completo INF-D003 */}
-      {selectedEvaluation && createPortal(
-        <div
-          className="fixed inset-0 z-[9999] flex items-center justify-center p-3 sm:p-6 bg-[#1c1815]/75 backdrop-blur-md animate-fade-in"
-          onClick={() => setSelectedEvaluation(null)}
-        >
-          <div
-            className="relative w-full max-w-2xl max-h-[90vh] sm:max-h-[85vh] flex flex-col bg-[#fdfbf7] rounded-3xl shadow-2xl border border-[#ded4c3] text-[#2c2724] overflow-hidden"
-            onClick={(e) => e.stopPropagation()}
-          >
+      <SmoothModal
+        isOpen={Boolean(selectedEvaluation)}
+        onClose={() => setSelectedEvaluation(null)}
+        contentClassName="relative w-full max-w-2xl max-h-[90vh] sm:max-h-[85vh] flex flex-col bg-[#fdfbf7] rounded-3xl shadow-2xl border border-[#ded4c3] text-[#2c2724] overflow-hidden"
+      >
+        {(closeWithAnimation) => selectedEvaluation && (
+          <>
             {/* Cabecera Fija */}
             <div className="p-5 sm:p-6 pb-3.5 border-b border-[#ded4c3] bg-[#fdfbf7] shrink-0 flex items-start justify-between gap-3">
               <div>
@@ -935,7 +942,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
               <button
                 type="button"
-                onClick={() => setSelectedEvaluation(null)}
+                onClick={closeWithAnimation}
                 className="w-8 h-8 rounded-full bg-[#f5f0e6] border border-[#ded4c3] text-[#7c746d] hover:text-[#2c2724] hover:bg-[#ede6d8] flex items-center justify-center text-xs font-bold transition-all shrink-0 active:scale-95 shadow-2xs"
                 title="Cerrar cuestionario"
               >
@@ -1046,40 +1053,41 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
               <div className="flex items-center gap-2">
                 <button
                   type="button"
-                  onClick={() => handleDelete(selectedEvaluation.id)}
+                  onClick={() => {
+                    handleDelete(selectedEvaluation.id);
+                    closeWithAnimation();
+                  }}
                   className="px-3 py-1.5 rounded-lg bg-[#fdf2f2] border border-[#fecaca] text-[#eb5757] hover:bg-rose-600 hover:text-white font-extrabold text-[11px] transition-all"
                 >
                   Eliminar
                 </button>
                 <button
                   type="button"
-                  onClick={() => setSelectedEvaluation(null)}
+                  onClick={closeWithAnimation}
                   className="px-3.5 py-1.5 rounded-lg bg-[#f5f0e6] border border-[#ded4c3] text-[#2c2724] hover:bg-[#ede6d8] font-bold text-[11px] transition-all"
                 >
                   Cerrar
                 </button>
               </div>
             </div>
-          </div>
-        </div>,
-        document.body
-      )}
+          </>
+        )}
+      </SmoothModal>
 
       {/* Modal de Estadísticas y Análisis Sensorial Individual */}
-      {selectedStats && (() => {
-        const metrics = calculateSensoryMetrics(selectedStats);
-        const isOptimo = metrics.totalIndex >= 85;
-        const isObservado = metrics.totalIndex >= 70 && metrics.totalIndex < 85;
+      <SmoothModal
+        isOpen={Boolean(selectedStats)}
+        onClose={() => setSelectedStats(null)}
+        contentClassName="relative w-full max-w-2xl max-h-[90vh] sm:max-h-[85vh] flex flex-col bg-[#fdfbf7] rounded-3xl shadow-2xl border border-[#ded4c3] text-[#2c2724] overflow-hidden"
+      >
+        {(closeWithAnimation) => {
+          if (!selectedStats) return null;
+          const metrics = calculateSensoryMetrics(selectedStats);
+          const isOptimo = metrics.totalIndex >= 85;
+          const isObservado = metrics.totalIndex >= 70 && metrics.totalIndex < 85;
 
-        return createPortal(
-          <div
-            className="fixed inset-0 z-[9999] flex items-center justify-center p-3 sm:p-6 bg-[#1c1815]/75 backdrop-blur-md animate-fade-in"
-            onClick={() => setSelectedStats(null)}
-          >
-            <div
-              className="relative w-full max-w-2xl max-h-[90vh] sm:max-h-[85vh] flex flex-col bg-[#fdfbf7] rounded-3xl shadow-2xl border border-[#ded4c3] text-[#2c2724] overflow-hidden"
-              onClick={(e) => e.stopPropagation()}
-            >
+          return (
+            <>
               {/* Cabecera Fija del Análisis */}
               <div className="p-5 sm:p-6 pb-3.5 border-b border-[#ded4c3] bg-[#fdfbf7] shrink-0 flex items-start justify-between gap-3">
                 <div className="flex items-start gap-3">
@@ -1109,7 +1117,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 {/* Botón cerrar fijo en la cabecera */}
                 <button
                   type="button"
-                  onClick={() => setSelectedStats(null)}
+                  onClick={closeWithAnimation}
                   className="w-8 h-8 rounded-full bg-[#f5f0e6] border border-[#ded4c3] text-[#7c746d] hover:text-[#2c2724] hover:bg-[#ede6d8] flex items-center justify-center text-xs font-bold transition-all shrink-0 active:scale-95 shadow-2xs"
                   title="Cerrar análisis"
                 >
@@ -1142,7 +1150,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                         />
                       </svg>
                       <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
-                        <span className="text-xl font-black text-[#2c2724] leading-none">{metrics.totalIndex}%</span>
+                        <AnimatedNumber value={metrics.totalIndex} suffix="%" className="text-xl font-black text-[#2c2724] leading-none" />
                         <span className="text-[8px] font-bold text-[#7c746d] uppercase mt-0.5">Índice</span>
                       </div>
                     </div>
@@ -1207,12 +1215,11 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                         <span className="font-black text-[#2c2724]">1. Vista y Aspecto Visual</span>
                         <span className="font-mono font-black text-[#4f46e5]">{metrics.vistaScore}%</span>
                       </div>
-                      <div className="w-full h-2.5 rounded-full bg-[#ede6d8] overflow-hidden">
-                        <div
-                          className="h-full rounded-full bg-[#4f46e5] transition-all duration-700"
-                          style={{ width: `${metrics.vistaScore}%` }}
-                        />
-                      </div>
+                      <AnimatedBar
+                        targetWidthPercent={metrics.vistaScore}
+                        barClassName="h-full rounded-full bg-[#4f46e5]"
+                        className="w-full h-2.5 rounded-full bg-[#ede6d8] overflow-hidden"
+                      />
                       <div className="flex items-center justify-between text-[11px] text-[#7c746d]">
                         <span>Color: <strong>{selectedStats.v1_color}</strong> • Relleno: <strong>{selectedStats.v2_cantidad}</strong> • Mezclado: <strong>{selectedStats.v3_mezclado}</strong></span>
                         <span className="font-semibold text-[#2c2724]">Sellado: {selectedStats.v6_selladoCarne}</span>
@@ -1225,12 +1232,11 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                         <span className="font-black text-[#2c2724]">2. Olfato y Perfil Aromático</span>
                         <span className="font-mono font-black text-[#5969E6]">{metrics.olfatoScore}%</span>
                       </div>
-                      <div className="w-full h-2.5 rounded-full bg-[#ede6d8] overflow-hidden">
-                        <div
-                          className="h-full rounded-full bg-[#5969E6] transition-all duration-700"
-                          style={{ width: `${metrics.olfatoScore}%` }}
-                        />
-                      </div>
+                      <AnimatedBar
+                        targetWidthPercent={metrics.olfatoScore}
+                        barClassName="h-full rounded-full bg-[#5969E6]"
+                        className="w-full h-2.5 rounded-full bg-[#ede6d8] overflow-hidden"
+                      />
                       <div className="flex items-center justify-between text-[11px] text-[#7c746d]">
                         <span>Intensidad: <strong>{selectedStats.o1_intensidadAroma}</strong> • Característico: <strong>{selectedStats.o2_aromaCaracteristico}</strong></span>
                         <span className={`font-semibold ${metrics.oloresExtranos.length === 0 ? 'text-emerald-700' : 'text-rose-600'}`}>
@@ -1245,12 +1251,11 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                         <span className="font-black text-[#2c2724]">3. Boca, Textura y Retrogusto</span>
                         <span className="font-mono font-black text-[#FC7572]">{metrics.bocaScore}%</span>
                       </div>
-                      <div className="w-full h-2.5 rounded-full bg-[#ede6d8] overflow-hidden">
-                        <div
-                          className="h-full rounded-full bg-[#FC7572] transition-all duration-700"
-                          style={{ width: `${metrics.bocaScore}%` }}
-                        />
-                      </div>
+                      <AnimatedBar
+                        targetWidthPercent={metrics.bocaScore}
+                        barClassName="h-full rounded-full bg-[#FC7572]"
+                        className="w-full h-2.5 rounded-full bg-[#ede6d8] overflow-hidden"
+                      />
                       <div className="flex items-center justify-between text-[11px] text-[#7c746d]">
                         <span>Masa: <strong>{selectedStats.b2_texturaMasa}</strong> • Jugosidad: <strong>{selectedStats.b3_jugosidadRelleno}</strong> • Sal: <strong>{selectedStats.b5_sal}</strong></span>
                         <span className={`font-semibold ${metrics.saboresExtranos.length === 0 ? 'text-emerald-700' : 'text-rose-600'}`}>
@@ -1265,12 +1270,11 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                         <span className="font-black text-[#2c2724]">4. Consistencia y Aprobación Global</span>
                         <span className="font-mono font-black text-amber-600">{metrics.globalScore}%</span>
                       </div>
-                      <div className="w-full h-2.5 rounded-full bg-[#ede6d8] overflow-hidden">
-                        <div
-                          className="h-full rounded-full bg-amber-500 transition-all duration-700"
-                          style={{ width: `${metrics.globalScore}%` }}
-                        />
-                      </div>
+                      <AnimatedBar
+                        targetWidthPercent={metrics.globalScore}
+                        barClassName="h-full rounded-full bg-amber-500"
+                        className="w-full h-2.5 rounded-full bg-[#ede6d8] overflow-hidden"
+                      />
                       <div className="flex items-center justify-between text-[11px] text-[#7c746d]">
                         <span>Dictamen: <strong>{selectedStats.g3_aprobacion}</strong></span>
                         <span className="font-semibold text-[#2c2724]">Puntuación: {selectedStats.g2_gustoGeneral}/5 estrellas</span>
@@ -1325,17 +1329,16 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
                 <button
                   type="button"
-                  onClick={() => setSelectedStats(null)}
+                  onClick={closeWithAnimation}
                   className="py-2.5 px-6 rounded-xl bg-[#4f46e5] hover:bg-[#4338ca] text-white font-extrabold text-xs uppercase tracking-wider shadow-md shadow-[#4f46e5]/25 active:scale-95 transition-all"
                 >
                   Cerrar Análisis
                 </button>
               </div>
-            </div>
-          </div>,
-          document.body
-        );
-      })()}
+            </>
+          );
+        }}
+      </SmoothModal>
     </div>
   );
 };

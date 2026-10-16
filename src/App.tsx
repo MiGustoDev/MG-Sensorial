@@ -147,8 +147,8 @@ export function App() {
         </div>
       </header>
 
-      {/* Vista activa */}
-      <main className="flex-1 flex flex-col">
+      {/* Vista activa con transición fluida GSAP */}
+      <main key={view} className="flex-1 flex flex-col animate-fade-in">
         {view === 'form' ? (
           <EvaluationForm
             onOpenAdmin={handleOpenAdmin}

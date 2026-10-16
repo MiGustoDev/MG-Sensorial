@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import type { SensorialFormAnswers } from '../types';
 import { EMPANADAS_GUSTOS, formatDisplayDate } from '../types';
 import { supabase } from '../lib/supabase';
+import { AnimatedBar, AnimatedNumber } from '../utils/gsapAnimations';
 import {
   CheckCircle2,
   AlertTriangle,
@@ -1308,15 +1309,12 @@ export const EvaluationForm: React.FC<EvaluationFormProps> = ({ onSavedSuccess }
               </div>
             </div>
 
-            {/* Barra de progreso de la pregunta en el módulo */}
-            <div className="w-full h-1.5 sm:h-2 bg-[#ede6d8] rounded-full overflow-hidden">
-              <div
-                className="h-full bg-[#4f46e5] rounded-full transition-all duration-300"
-                style={{
-                  width: `${((currentQuestion + 1) / MODULES[currentModule].totalQuestions) * 100}%`
-                }}
-              />
-            </div>
+            {/* Barra de progreso de la pregunta en el módulo con GSAP */}
+            <AnimatedBar
+              targetWidthPercent={((currentQuestion + 1) / MODULES[currentModule].totalQuestions) * 100}
+              className="w-full h-1.5 sm:h-2 bg-[#ede6d8] rounded-full overflow-hidden"
+              barClassName="h-full bg-[#4f46e5] rounded-full transition-all"
+            />
 
             {/* Pregunta Activa */}
             <div className="pt-2">
@@ -1785,7 +1783,7 @@ export const EvaluationForm: React.FC<EvaluationFormProps> = ({ onSavedSuccess }
                 <span className="text-[#3d3630] truncate max-w-[240px] text-left">
                   {analysisStageText}
                 </span>
-                <span className="text-[#4f46e5] font-mono">{analysisProgress}%</span>
+                <AnimatedNumber value={analysisProgress} suffix="%" className="text-[#4f46e5] font-mono" />
               </div>
               <div className="w-full h-3 rounded-full bg-[#ede6d8] overflow-hidden border border-[#ded4c3]">
                 <div
