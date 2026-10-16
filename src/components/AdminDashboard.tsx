@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import type { SensorialEvaluationRecord } from '../types';
+import { formatDisplayDate } from '../types';
 import { supabase } from '../lib/supabase';
 import {
   ArrowLeft,
@@ -210,7 +211,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     ];
 
     const rows = evaluations.map(e => [
-      e.fecha,
+      formatDisplayDate(e.fecha),
       e.hora,
       `"${e.evaluador}"`,
       `"${e.loteBatea}"`,
@@ -741,7 +742,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                         </span>
                       )}
                       <span className="text-[10px] text-[#7c746d]">
-                        {ev.fecha}
+                        {formatDisplayDate(ev.fecha)}
                       </span>
                     </div>
                   </div>
@@ -832,7 +833,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                       className="hover:bg-[#f8f5ee] transition-colors"
                     >
                       <td className="py-4 px-5 text-[#4a423b] font-mono text-xs sm:text-sm">
-                        <div className="font-bold text-[#2c2724]">{ev.fecha}</div>
+                        <div className="font-bold text-[#2c2724]">{formatDisplayDate(ev.fecha)}</div>
                         <div className="text-[11px] text-[#7c746d]">{ev.hora} hs</div>
                       </td>
                       <td className="py-4 px-5 font-black text-sm sm:text-base text-[#2c2724]">
@@ -1041,7 +1042,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
             {/* Pie de modal fijo */}
             <div className="p-4 sm:p-5 border-t border-[#ded4c3] bg-[#f5f0e6]/70 shrink-0 text-[11px] text-[#7c746d] flex justify-between items-center">
-              <span>Evaluador: <strong className="text-[#2c2724]">{selectedEvaluation.evaluador}</strong> ({selectedEvaluation.fecha} {selectedEvaluation.hora} hs)</span>
+              <span>Evaluador: <strong className="text-[#2c2724]">{selectedEvaluation.evaluador}</strong> ({formatDisplayDate(selectedEvaluation.fecha)} {selectedEvaluation.hora} hs)</span>
               <div className="flex items-center gap-2">
                 <button
                   type="button"
@@ -1100,7 +1101,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                       <span>•</span>
                       <span>Evaluador: <strong className="text-[#2c2724] font-bold">{selectedStats.evaluador}</strong></span>
                       <span>•</span>
-                      <span>{selectedStats.fecha} {selectedStats.hora} hs</span>
+                      <span>{formatDisplayDate(selectedStats.fecha)} {selectedStats.hora} hs</span>
                     </div>
                   </div>
                 </div>

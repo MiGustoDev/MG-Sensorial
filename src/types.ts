@@ -77,3 +77,35 @@ export const EMPANADAS_GUSTOS = [
   'Roquefort con Jamón',
   'Verdura'
 ];
+
+/**
+ * Formatea cualquier representación de fecha a formato estricto dd/mm/aaaa
+ */
+export const formatDisplayDate = (dateStr?: string | null): string => {
+  if (!dateStr) return '';
+  const cleanDate = dateStr.split('T')[0].split(' ')[0].trim();
+  if (/^\d{1,2}\/\d{1,2}\/\d{4}$/.test(cleanDate)) {
+    const [d, m, y] = cleanDate.split('/');
+    return `${d.padStart(2, '0')}/${m.padStart(2, '0')}/${y}`;
+  }
+  const parts = cleanDate.split(/[-/]/);
+  if (parts.length === 3) {
+    if (parts[0].length === 4) {
+      // YYYY-MM-DD
+      const [year, month, day] = parts;
+      return `${day.padStart(2, '0')}/${month.padStart(2, '0')}/${year}`;
+    } else if (parts[2].length === 4) {
+      // DD-MM-YYYY
+      const [day, month, year] = parts;
+      return `${day.padStart(2, '0')}/${month.padStart(2, '0')}/${year}`;
+    }
+  }
+  const d = new Date(dateStr);
+  if (!isNaN(d.getTime())) {
+    const day = String(d.getDate()).padStart(2, '0');
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const year = d.getFullYear();
+    return `${day}/${month}/${year}`;
+  }
+  return dateStr;
+};
