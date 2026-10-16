@@ -237,11 +237,12 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   return (
     <div className="w-full max-w-4xl mx-auto px-3 sm:px-6 py-4 sm:py-6 pb-20">
       {/* Header */}
-      <div className="flex items-center justify-between gap-2 mb-4 pb-4 border-b border-qc-500/15">
+      {/* Header Admin */}
+      <div className="flex items-center justify-between gap-2 mb-4 pb-4 border-b border-[#1f293d]">
         <div className="flex items-center gap-3">
           <button
             onClick={onBack}
-            className="p-2 rounded-xl bg-qc-950/80 border border-qc-500/20 text-slate-300 hover:text-white active:scale-95 transition-all"
+            className="p-2 rounded-xl bg-[#0c121e] border border-[#1f293d] text-slate-300 hover:text-white active:scale-95 transition-all"
           >
             <ArrowLeft className="w-5 h-5 text-qc-400" />
           </button>
@@ -259,14 +260,14 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
           <button
             onClick={fetchEvaluations}
             title="Recargar"
-            className="p-2 rounded-xl bg-qc-950 border border-qc-500/20 hover:text-qc-400 active:scale-95"
+            className="p-2 rounded-xl bg-[#0c121e] border border-[#1f293d] hover:text-qc-400 active:scale-95"
           >
             <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
           </button>
           <button
             onClick={exportCSV}
             title="Descargar Planilla Oficial"
-            className="p-2 sm:px-3 sm:py-2 rounded-xl bg-qc-900 border border-qc-500/30 text-qc-400 hover:bg-qc-800 text-xs font-bold active:scale-95 flex items-center gap-1.5"
+            className="p-2 sm:px-3 sm:py-2 rounded-xl bg-[#161f30] hover:bg-[#1d293f] border border-[#223048] text-qc-300 hover:text-white text-xs font-bold active:scale-95 flex items-center gap-1.5"
           >
             <Download className="w-4 h-4" />
             <span className="hidden sm:inline">Exportar Planilla</span>
@@ -274,32 +275,32 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
           <button
             onClick={onLogout}
             title="Salir"
-            className="p-2 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-400 hover:bg-rose-500/20 active:scale-95"
+            className="p-2 rounded-xl bg-rose-950/40 border border-rose-500/30 text-rose-400 hover:bg-rose-900/50 active:scale-95"
           >
             <LogOut className="w-4 h-4" />
           </button>
         </div>
       </div>
 
-      {/* KPI Cards */}
+      {/* KPI Cards Sólidos */}
       <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 sm:gap-3 mb-5">
-        <div className="glass-panel p-3 rounded-xl border border-qc-500/20">
+        <div className="glass-panel p-3 rounded-xl border border-[#1f293d]">
           <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Muestras Evaluadas</p>
           <p className="text-xl sm:text-2xl font-black text-white mt-0.5">{stats.total}</p>
         </div>
-        <div className="glass-panel p-3 rounded-xl border border-emerald-500/30 bg-emerald-500/[0.04]">
+        <div className="glass-panel p-3 rounded-xl border border-emerald-500/30 bg-[#0d1f19]">
           <p className="text-[10px] font-bold text-emerald-400 uppercase tracking-wider">Aprobadas</p>
           <p className="text-xl sm:text-2xl font-black text-emerald-400 mt-0.5">{stats.aprobados}</p>
         </div>
-        <div className="glass-panel p-3 rounded-xl border border-amber-500/30 bg-amber-500/[0.04]">
+        <div className="glass-panel p-3 rounded-xl border border-amber-500/30 bg-[#1f1a0e]">
           <p className="text-[10px] font-bold text-amber-400 uppercase tracking-wider">Con Observaciones</p>
           <p className="text-xl sm:text-2xl font-black text-amber-400 mt-0.5">{stats.observados}</p>
         </div>
-        <div className="glass-panel p-3 rounded-xl border border-rose-500/30 bg-rose-500/[0.04]">
+        <div className="glass-panel p-3 rounded-xl border border-rose-500/30 bg-[#221013]">
           <p className="text-[10px] font-bold text-rose-400 uppercase tracking-wider">Rechazadas</p>
           <p className="text-xl sm:text-2xl font-black text-rose-400 mt-0.5">{stats.rechazados}</p>
         </div>
-        <div className="glass-panel p-3 rounded-xl border border-qc-500/40 bg-qc-950/60 col-span-2 sm:col-span-1">
+        <div className="glass-panel p-3 rounded-xl border border-qc-500/30 bg-[#0c1626] col-span-2 sm:col-span-1">
           <p className="text-[10px] font-bold text-qc-400 uppercase tracking-wider">Gusto General</p>
           <p className="text-xl sm:text-2xl font-black text-white mt-0.5 font-mono">{stats.promedioGusto} <span className="text-[10px] text-slate-400">/ 5</span></p>
         </div>
@@ -350,13 +351,13 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
               <div
                 key={ev.id || Math.random()}
                 onClick={() => setSelectedEvaluation(ev)}
-                className="glass-panel p-3.5 rounded-2xl border border-qc-500/15 active:scale-[0.99] transition-transform space-y-2 cursor-pointer"
+                className="glass-panel p-3.5 rounded-2xl border border-[#1f293d] active:scale-[0.99] transition-transform space-y-2 cursor-pointer"
               >
                 <div className="flex items-start justify-between gap-2">
                   <div>
                     <h3 className="text-sm font-bold text-white">{ev.gusto}</h3>
                     <div className="flex items-center gap-2 mt-0.5">
-                      <span className="font-mono text-[11px] font-bold text-qc-400 bg-qc-950 px-2 py-0.5 rounded border border-qc-500/20">
+                      <span className="font-mono text-[11px] font-bold text-qc-400 bg-[#0c121e] px-2 py-0.5 rounded border border-[#1f293d]">
                         {ev.loteBatea}
                       </span>
                       {ev.codigoMuestra && (
@@ -373,10 +374,10 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                   <span
                     className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold border ${
                       isAprobado
-                        ? 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30'
+                        ? 'bg-emerald-950/80 text-emerald-300 border-emerald-500/40'
                         : isObservado
-                        ? 'bg-amber-500/15 text-amber-300 border-amber-500/30'
-                        : 'bg-rose-500/15 text-rose-300 border-rose-500/30'
+                        ? 'bg-amber-950/80 text-amber-300 border-amber-500/40'
+                        : 'bg-rose-950/80 text-rose-300 border-rose-500/40'
                     }`}
                   >
                     {isAprobado ? (
@@ -390,7 +391,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                   </span>
                 </div>
 
-                <div className="flex items-center justify-between pt-1 border-t border-slate-800/80 text-[11px]">
+                <div className="flex items-center justify-between pt-1 border-t border-[#1f293d] text-[11px]">
                   <span className="text-slate-400">
                     Evaluador: <strong className="text-slate-200">{ev.evaluador}</strong>
                   </span>
@@ -406,10 +407,10 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
       </div>
 
       {/* Tabla Desktop */}
-      <div className="hidden sm:block glass-panel rounded-2xl border border-qc-500/15 overflow-hidden">
+      <div className="hidden sm:block glass-panel rounded-2xl border border-[#1f293d] overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
-            <thead className="bg-dark-900 text-slate-400 uppercase tracking-wider border-b border-qc-500/15 font-bold">
+            <thead className="bg-[#0e1422] text-slate-300 uppercase tracking-wider border-b border-[#1f293d] font-bold">
               <tr>
                 <th className="py-3 px-4">Fecha/Hora</th>
                 <th className="py-3 px-4">Gusto</th>
@@ -420,7 +421,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 <th className="py-3 px-4 text-right">Acciones</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-qc-500/10">
+            <tbody className="divide-y divide-[#1f293d]">
               {loading ? (
                 <tr>
                   <td colSpan={7} className="text-center py-10 text-slate-400">
@@ -442,7 +443,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                   return (
                     <tr
                       key={ev.id || Math.random()}
-                      className="hover:bg-qc-950/40 transition-colors"
+                      className="hover:bg-[#161f30] transition-colors"
                     >
                       <td className="py-3 px-4 text-slate-300 font-mono">
                         <div>{ev.fecha}</div>
@@ -453,7 +454,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                         {ev.codigoMuestra && <span className="text-[10px] text-slate-400 ml-1">({ev.codigoMuestra})</span>}
                       </td>
                       <td className="py-3 px-4">
-                        <span className="font-mono bg-qc-950 px-2 py-0.5 rounded text-qc-400 border border-qc-500/20 font-bold">
+                        <span className="font-mono bg-[#0c121e] px-2 py-0.5 rounded text-qc-400 border border-[#1f293d] font-bold">
                           {ev.loteBatea}
                         </span>
                       </td>
@@ -508,8 +509,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
       {/* Modal Cuestionario Completo INF-D003 */}
       {selectedEvaluation && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/85 backdrop-blur-md">
-          <div className="relative w-full max-w-xl max-h-[92vh] overflow-y-auto glass-panel rounded-2xl p-5 sm:p-6 shadow-2xl border border-qc-500/30">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/75 animate-fade-in">
+          <div className="relative w-full max-w-xl max-h-[92vh] overflow-y-auto glass-panel rounded-2xl p-5 sm:p-6 shadow-2xl border border-[#1f293d]">
             <button
               onClick={() => setSelectedEvaluation(null)}
               className="absolute top-4 right-4 text-slate-400 hover:text-white p-1"
@@ -517,7 +518,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
               ✕
             </button>
 
-            <div className="border-b border-qc-500/20 pb-3 mb-4">
+            <div className="border-b border-[#1f293d] pb-3 mb-4">
               <div className="flex items-center gap-2">
                 <span className="text-[10px] uppercase font-bold text-qc-400 tracking-wider">Planilla Oficial INF-D003</span>
                 <span className="text-[10px] text-slate-400 font-mono">• Versión 2</span>
@@ -530,7 +531,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
             <div className="space-y-3 text-xs">
               {/* Sección 1: Vista */}
-              <div className="glass-card p-3 rounded-xl border border-qc-500/10 space-y-1.5">
+              <div className="glass-card p-3 rounded-xl border border-[#1f293d] space-y-1.5">
                 <span className="font-bold text-qc-400 uppercase text-[10px] block">1. VISTA</span>
                 <div className="grid grid-cols-2 gap-1.5 text-slate-300">
                   <div>Color relleno: <strong className="text-white">{selectedEvaluation.v1_color}</strong></div>

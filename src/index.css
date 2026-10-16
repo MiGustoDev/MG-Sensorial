@@ -4,39 +4,70 @@
 
 @layer base {
   body {
-    @apply bg-[#05070c] text-slate-100 antialiased selection:bg-qc-600 selection:text-white min-h-screen font-sans;
+    @apply bg-[#f4f6f8] text-slate-800 antialiased selection:bg-[#3b68ff] selection:text-white min-h-screen font-sans;
     -webkit-tap-highlight-color: transparent;
   }
 }
 
-/* Glassmorphism QC Theme (Dark Black & Cobalt / Cyan Blue) */
+/* Solid Brand Palette (Clean White Surfaces, Royal Blue, Coral Red, Solid Borders) */
 .glass-panel {
-  background: linear-gradient(135deg, rgba(13, 20, 36, 0.85) 0%, rgba(8, 12, 22, 0.9) 100%);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(56, 165, 248, 0.16);
-  box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.7), inset 0 1px 0 0 rgba(255, 255, 255, 0.05);
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 2px 6px -1px rgba(15, 23, 42, 0.06), 0 1px 3px -1px rgba(15, 23, 42, 0.04);
 }
 
 .glass-card {
-  background: linear-gradient(135deg, rgba(16, 24, 42, 0.7) 0%, rgba(10, 16, 28, 0.75) 100%);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
-  border: 1px solid rgba(56, 165, 248, 0.12);
-  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.5);
+  background-color: #f8fafc;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 1px 3px 0 rgba(15, 23, 42, 0.04);
 }
 
 .glass-input {
-  background: rgba(7, 11, 20, 0.9);
-  border: 1px solid rgba(56, 165, 248, 0.2);
-  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  background-color: #ffffff;
+  border: 1px solid #cbd5e1;
+  color: #0f172a;
+  transition: all 0.15s ease-in-out;
 }
 
 .glass-input:focus {
-  border-color: #38a5f8;
-  background: rgba(10, 16, 30, 0.95);
-  box-shadow: 0 0 0 3px rgba(56, 165, 248, 0.25), 0 0 16px rgba(56, 165, 248, 0.2);
+  border-color: #3b68ff;
+  background-color: #ffffff;
+  box-shadow: 0 0 0 2px rgba(59, 104, 255, 0.2);
   outline: none;
+}
+
+/* Date, Time & Select Dark Mode Theme Styling */
+input[type="date"],
+input[type="time"],
+select {
+  color-scheme: dark;
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator,
+input[type="time"]::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+  filter: invert(0.85) sepia(60%) saturate(300%) hue-rotate(175deg) brightness(1.1);
+  padding: 3px;
+  border-radius: 6px;
+  transition: all 0.15s ease;
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator:hover,
+input[type="time"]::-webkit-calendar-picker-indicator:hover {
+  background-color: rgba(56, 165, 248, 0.2);
+  filter: invert(1) brightness(1.4);
+}
+
+select option {
+  background-color: #0c121e;
+  color: #f1f5f9;
+  padding: 10px 14px;
+  font-weight: 500;
+}
+
+select option:checked {
+  background-color: #026bc9;
+  color: #ffffff;
 }
 
 /* Custom modern range slider for touch devices */

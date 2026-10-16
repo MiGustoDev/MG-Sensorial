@@ -53,8 +53,8 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fade-in">
-      <div className="relative w-full max-w-sm glass-panel rounded-2xl p-6 shadow-2xl border border-qc-500/30">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 animate-fade-in">
+      <div className="relative w-full max-w-sm glass-panel rounded-2xl p-6 shadow-2xl border border-[#1f293d]">
         <button
           onClick={onClose}
           className="absolute top-3.5 right-3.5 text-slate-400 hover:text-white p-1"
@@ -63,7 +63,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
         </button>
 
         <div className="flex items-center gap-3 mb-5">
-          <div className="w-10 h-10 rounded-xl bg-qc-950 border border-qc-500/30 flex items-center justify-center text-qc-400">
+          <div className="w-10 h-10 rounded-xl bg-[#0c121e] border border-[#1f293d] flex items-center justify-center text-qc-400">
             <Lock className="w-5 h-5" />
           </div>
           <div>
@@ -81,8 +81,9 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
 
         <form onSubmit={handleSubmit} className="space-y-3.5">
           <div>
-            <label className="block text-[11px] font-semibold text-slate-300 uppercase tracking-wider mb-1">
-              Usuario Autorizado
+            <label className="flex items-center gap-1 text-[11px] font-semibold text-slate-300 uppercase tracking-wider mb-1">
+              <span>Usuario Autorizado</span>
+              <span className="text-red-500 font-extrabold text-xs ml-0.5">*</span>
             </label>
             <div className="relative">
               <Mail className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
@@ -98,8 +99,9 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
           </div>
 
           <div>
-            <label className="block text-[11px] font-semibold text-slate-300 uppercase tracking-wider mb-1">
-              Contraseña
+            <label className="flex items-center gap-1 text-[11px] font-semibold text-slate-300 uppercase tracking-wider mb-1">
+              <span>Contraseña</span>
+              <span className="text-red-500 font-extrabold text-xs ml-0.5">*</span>
             </label>
             <div className="relative">
               <Lock className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
