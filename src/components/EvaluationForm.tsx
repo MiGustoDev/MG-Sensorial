@@ -13,7 +13,6 @@ import {
   Wind,
   Smile,
   Award,
-  PenTool,
   RotateCcw,
   Sparkles,
   ArrowRight,
@@ -28,7 +27,8 @@ import {
   Star,
   ChevronDown,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  ArrowLeft
 } from 'lucide-react';
 
 interface EvaluationFormProps {
@@ -40,6 +40,16 @@ export const EvaluationForm: React.FC<EvaluationFormProps> = ({ onSavedSuccess, 
   // Estado de despliegue del flujo en 2 pasos
   const [isEvaluationUnlocked, setIsEvaluationUnlocked] = useState(false);
   const [isEditingSample, setIsEditingSample] = useState(false);
+
+  // Wizard de Evaluación por Módulos y Preguntas
+  const [currentModule, setCurrentModule] = useState(0); // 0: Vista, 1: Olfato, 2: Boca, 3: Global
+  const [currentQuestion, setCurrentQuestion] = useState(0);
+
+  // Estados de carga / análisis de 5s y agradecimiento personalizado
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [analysisProgress, setAnalysisProgress] = useState(0);
+  const [analysisStageText, setAnalysisStageText] = useState('Iniciando auditoría sensorial...');
+  const [showThankYou, setShowThankYou] = useState(false);
 
   // Encabezado / Formulario de Muestra
   const [fecha, setFecha] = useState(() => new Date().toISOString().split('T')[0]);
@@ -148,7 +158,7 @@ export const EvaluationForm: React.FC<EvaluationFormProps> = ({ onSavedSuccess, 
 
   // Canvas resize / DPI handling
   useEffect(() => {
-    if (isEvaluationUnlocked && canvasRef.current) {
+    if (isEvaluationUnlocked && currentModule === 3 && currentQuestion === 4 && canvasRef.current) {
       const canvas = canvasRef.current;
       const ctx = canvas.getContext('2d');
       if (ctx) {
@@ -157,7 +167,7 @@ export const EvaluationForm: React.FC<EvaluationFormProps> = ({ onSavedSuccess, 
         ctx.lineCap = 'round';
       }
     }
-  }, [isEvaluationUnlocked]);
+  }, [isEvaluationUnlocked, currentModule, currentQuestion]);
 
   // Manejo de arrays multiselección
   const toggleArrayItem = <T extends string>(list: T[], setList: (l: T[]) => void, item: T, exclusiveItem?: T) => {
@@ -284,9 +294,13 @@ export const EvaluationForm: React.FC<EvaluationFormProps> = ({ onSavedSuccess, 
   };
 
   const handleResetForNewEvaluation = () => {
+    setShowThankYou(false);
+    setIsAnalyzing(false);
     setSuccessSaved(false);
     setIsEvaluationUnlocked(false);
     setIsEditingSample(false);
+    setCurrentModule(0);
+    setCurrentQuestion(0);
     setLoteBatea('');
     setCodigoMuestra('');
     setPhotos([]);
@@ -298,8 +312,8 @@ export const EvaluationForm: React.FC<EvaluationFormProps> = ({ onSavedSuccess, 
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
     setErrorMessage(null);
 
     const actualGusto = gusto === 'OTRO' ? otroGusto.trim() : gusto;
@@ -312,6 +326,9 @@ export const EvaluationForm: React.FC<EvaluationFormProps> = ({ onSavedSuccess, 
     }
 
     setSaving(true);
+    setIsAnalyzing(true);
+    setAnalysisProgress(0);
+    setAnalysisStageText('Iniciando auditoría organoléptica...');
 
     let firmaData = '';
     if (hasSignature && canvasRef.current) {
@@ -358,85 +375,175 @@ export const EvaluationForm: React.FC<EvaluationFormProps> = ({ onSavedSuccess, 
       fotos: photos
     };
 
-    try {
-      const { error } = await supabase
-        .from('sensorial_evaluations_v2')
-        .insert([{
-          fecha: payload.fecha,
-          hora: payload.hora,
-          evaluador: payload.evaluador,
-          lote_batea: payload.loteBatea,
-          gusto: payload.gusto,
-          codigo_muestra: payload.codigoMuestra,
-          v1_color: payload.v1_color,
-          v2_cantidad: payload.v2_cantidad,
-          v3_mezclado: payload.v3_mezclado,
-          v4_ingredientes_receta: payload.v4_ingredientesReceta,
-          v5_ingrediente_extrano: payload.v5_ingredienteExtrano,
-          v6_sellado_carne: payload.v6_selladoCarne,
-          v7_rehogado_vegetales: payload.v7_rehogadoVegetales,
-          v8_caramelizacion: payload.v8_caramelizacion,
-          obs_vista: payload.obs_vista,
-          o1_intensidad_aroma: payload.o1_intensidadAroma,
-          o2_aroma_caracteristico: payload.o2_aromaCaracteristico,
-          o3_olor_extrano: payload.o3_olorExtrano,
-          obs_olfato: payload.obs_olfato,
-          b1_primer_impacto: payload.b1_primerImpacto,
-          b2_textura_masa: payload.b2_texturaMasa,
-          b3_jugosidad_relleno: payload.b3_jugosidadRelleno,
-          b4_textura_carne: payload.b4_texturaCarne,
-          b5_sal: payload.b5_sal,
-          b6_dulce: payload.b6_dulce,
-          b7_picante: payload.b7_picante,
-          b8_sabor_caracteristico: payload.b8_saborCaracteristico,
-          b9_ingrediente_tapa: payload.b9_ingredienteTapa,
-          b10_sabor_extrano: payload.b10_saborExtrano,
-          b11_retrogusto: payload.b11_retrogusto,
-          obs_boca: payload.obs_boca,
-          g1_estandar_gusto: payload.g1_estandarGusto,
-          g2_gusto_general: payload.g2_gustoGeneral,
-          g3_aprobacion: payload.g3_aprobacion,
-          obs_global: payload.obs_global,
-          firma_evaluador: payload.firmaEvaluador,
-          fotos: payload.fotos,
-          saved_by_email: localStorage.getItem('mg_sensorial_admin_user') || 'control_calidad@migusto.com.ar'
-        }]);
+    // Guardado asíncrono en Supabase / LocalStorage
+    const savePromise = (async () => {
+      try {
+        const { error } = await supabase
+          .from('sensorial_evaluations_v2')
+          .insert([{
+            fecha: payload.fecha,
+            hora: payload.hora,
+            evaluador: payload.evaluador,
+            lote_batea: payload.loteBatea,
+            gusto: payload.gusto,
+            codigo_muestra: payload.codigoMuestra,
+            v1_color: payload.v1_color,
+            v2_cantidad: payload.v2_cantidad,
+            v3_mezclado: payload.v3_mezclado,
+            v4_ingredientes_receta: payload.v4_ingredientesReceta,
+            v5_ingrediente_extrano: payload.v5_ingredienteExtrano,
+            v6_sellado_carne: payload.v6_selladoCarne,
+            v7_rehogado_vegetales: payload.v7_rehogadoVegetales,
+            v8_caramelizacion: payload.v8_caramelizacion,
+            obs_vista: payload.obs_vista,
+            o1_intensidad_aroma: payload.o1_intensidadAroma,
+            o2_aroma_caracteristico: payload.o2_aromaCaracteristico,
+            o3_olor_extrano: payload.o3_olorExtrano,
+            obs_olfato: payload.obs_olfato,
+            b1_primer_impacto: payload.b1_primerImpacto,
+            b2_textura_masa: payload.b2_texturaMasa,
+            b3_jugosidad_relleno: payload.b3_jugosidadRelleno,
+            b4_textura_carne: payload.b4_texturaCarne,
+            b5_sal: payload.b5_sal,
+            b6_dulce: payload.b6_dulce,
+            b7_picante: payload.b7_picante,
+            b8_sabor_caracteristico: payload.b8_saborCaracteristico,
+            b9_ingrediente_tapa: payload.b9_ingredienteTapa,
+            b10_sabor_extrano: payload.b10_saborExtrano,
+            b11_retrogusto: payload.b11_retrogusto,
+            obs_boca: payload.obs_boca,
+            g1_estandar_gusto: payload.g1_estandarGusto,
+            g2_gusto_general: payload.g2_gustoGeneral,
+            g3_aprobacion: payload.g3_aprobacion,
+            obs_global: payload.obs_global,
+            firma_evaluador: payload.firmaEvaluador,
+            fotos: payload.fotos,
+            saved_by_email: localStorage.getItem('mg_sensorial_admin_user') || 'control_calidad@migusto.com.ar'
+          }]);
 
-      if (error) {
-        console.warn('Supabase fallback to local storage:', error);
-        const local = JSON.parse(localStorage.getItem('mg_sensorial_official_history') || '[]');
-        local.unshift({ ...payload, id: 'local_' + Date.now(), created_at: new Date().toISOString() });
-        localStorage.setItem('mg_sensorial_official_history', JSON.stringify(local));
+        if (error) {
+          console.warn('Supabase fallback to local storage:', error);
+          const local = JSON.parse(localStorage.getItem('mg_sensorial_official_history') || '[]');
+          local.unshift({ ...payload, id: 'local_' + Date.now(), created_at: new Date().toISOString() });
+          localStorage.setItem('mg_sensorial_official_history', JSON.stringify(local));
+        }
+      } catch (err: any) {
+        console.error(err);
+      }
+    })();
+
+    // Simulación técnica de análisis durante 5 segundos
+    const startTime = Date.now();
+    const duration = 5000;
+
+    const intervalId = setInterval(async () => {
+      const elapsed = Date.now() - startTime;
+      const progress = Math.min(100, Math.round((elapsed / duration) * 100));
+      setAnalysisProgress(progress);
+
+      if (progress < 25) {
+        setAnalysisStageText('Auditando parámetros organolépticos...');
+      } else if (progress < 55) {
+        setAnalysisStageText('Verificando estándares de calidad Mi Gusto...');
+      } else if (progress < 80) {
+        setAnalysisStageText('Compilando protocolo técnico INF-D003...');
+      } else {
+        setAnalysisStageText('Almacenando evaluación en historial oficial...');
       }
 
-      confetti({
-        particleCount: 90,
-        spread: 70,
-        origin: { y: 0.8 },
-        colors: ['#38a5f8', '#026bc9', '#10b981', '#f59e0b', '#ffffff']
-      });
+      if (elapsed >= duration) {
+        clearInterval(intervalId);
+        await savePromise;
+        setSaving(false);
+        setIsAnalyzing(false);
+        setShowThankYou(true);
+        setSuccessSaved(true);
+        if (onSavedSuccess) onSavedSuccess();
 
-      setSuccessSaved(true);
-      if (onSavedSuccess) onSavedSuccess();
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    } catch (err: any) {
-      console.error(err);
-      setErrorMessage(err.message || 'Error al guardar la evaluación');
-    } finally {
-      setSaving(false);
+        confetti({
+          particleCount: 110,
+          spread: 80,
+          origin: { y: 0.6 },
+          colors: ['#3b68ff', '#2563eb', '#10b981', '#f59e0b', '#ffffff', '#ff5757']
+        });
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+    }, 50);
+  };
+
+  // Configuración de los 4 Módulos del Wizard
+  const MODULES = [
+    {
+      id: 'vista',
+      name: 'Vista',
+      title: '1. VISTA – Empanada cortada al medio',
+      subtitle: 'Inspección visual del relleno y cocción',
+      icon: Eye,
+      totalQuestions: 9
+    },
+    {
+      id: 'olfato',
+      name: 'Olfato',
+      title: '2. OLFATO – Relleno recién cortado',
+      subtitle: 'Intensidad y notas aromáticas',
+      icon: Wind,
+      totalQuestions: 4
+    },
+    {
+      id: 'boca',
+      name: 'Boca',
+      title: '3. BOCA – Primer bocado, masa y relleno juntos',
+      subtitle: 'Gusto en boca, textura y retrogusto',
+      icon: Smile,
+      totalQuestions: 12
+    },
+    {
+      id: 'global',
+      name: 'Global',
+      title: '4. EVALUACIÓN GLOBAL & FIRMA',
+      subtitle: 'Puntaje global, dictamen de despacho y firma',
+      icon: Award,
+      totalQuestions: 5
+    }
+  ];
+
+  const handleNextStep = () => {
+    const totalInModule = MODULES[currentModule].totalQuestions;
+    if (currentQuestion < totalInModule - 1) {
+      setCurrentQuestion(prev => prev + 1);
+    } else if (currentModule < MODULES.length - 1) {
+      setCurrentModule(prev => prev + 1);
+      setCurrentQuestion(0);
     }
   };
 
-  // Helper de selección única estilo Chip moderno
-  const renderSingleSelect = (
-    label: string,
+  const handlePrevStep = () => {
+    if (currentQuestion > 0) {
+      setCurrentQuestion(prev => prev - 1);
+    } else if (currentModule > 0) {
+      const prevMod = currentModule - 1;
+      setCurrentModule(prevMod);
+      setCurrentQuestion(MODULES[prevMod].totalQuestions - 1);
+    }
+  };
+
+  // Helper para preguntas de selección única en el Wizard
+  const renderWizardSingleSelect = (
+    title: string,
+    subtitle: string,
     currentValue: string,
     onChange: (val: any) => void,
     options: string[]
   ) => (
-    <div className="space-y-1.5">
-      <span className="text-xs font-semibold text-slate-700 block">{label}</span>
-      <div className="flex flex-wrap gap-1.5">
+    <div className="space-y-3.5 animate-fade-in">
+      <div>
+        <h3 className="text-xs sm:text-sm font-extrabold text-slate-900 leading-snug">
+          {title}
+        </h3>
+        {subtitle && <p className="text-[11px] text-slate-500 mt-0.5">{subtitle}</p>}
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
         {options.map(opt => {
           const isSelected = currentValue === opt;
           return (
@@ -444,13 +551,20 @@ export const EvaluationForm: React.FC<EvaluationFormProps> = ({ onSavedSuccess, 
               type="button"
               key={opt}
               onClick={() => onChange(opt)}
-              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all border active:scale-95 ${
+              className={`p-3 rounded-xl text-xs sm:text-sm font-bold text-left transition-all border flex items-center justify-between active:scale-[0.99] ${
                 isSelected
                   ? 'bg-[#3b68ff] text-white border-[#3b68ff] shadow-sm'
-                  : 'bg-slate-100 border-slate-200 text-slate-700 hover:text-slate-900 hover:bg-slate-200'
+                  : 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100'
               }`}
             >
-              {opt}
+              <span>{opt}</span>
+              <div
+                className={`w-4 h-4 rounded-full border flex items-center justify-center shrink-0 ml-2 ${
+                  isSelected ? 'border-white bg-white text-[#3b68ff]' : 'border-slate-300 bg-white'
+                }`}
+              >
+                {isSelected && <Check className="w-3 h-3 stroke-[3]" />}
+              </div>
             </button>
           );
         })}
@@ -458,41 +572,123 @@ export const EvaluationForm: React.FC<EvaluationFormProps> = ({ onSavedSuccess, 
     </div>
   );
 
+  // Helper para preguntas de multiselección en el Wizard
+  const renderWizardMultiSelect = (
+    title: string,
+    subtitle: string,
+    options: readonly string[],
+    currentList: readonly string[] | string[],
+    onToggle: (item: any) => void,
+    normalOption?: string
+  ) => (
+    <div className="space-y-3.5 animate-fade-in">
+      <div>
+        <h3 className="text-xs sm:text-sm font-extrabold text-slate-900 leading-snug">
+          {title}
+        </h3>
+        <p className="text-[11px] text-slate-500 mt-0.5">
+          {subtitle || 'Podés seleccionar una o más opciones que correspondan.'}
+        </p>
+      </div>
+
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+        {options.map(opt => {
+          const isSelected = currentList.includes(opt);
+          let activeClass = 'bg-[#3b68ff] text-white border-[#3b68ff] shadow-sm';
+          if (normalOption && opt === normalOption) {
+            activeClass = 'bg-emerald-600 text-white border-emerald-500 shadow-sm';
+          } else if (normalOption && opt !== normalOption) {
+            activeClass = 'bg-[#ff5757] text-white border-[#ff5757] shadow-sm';
+          }
+
+          return (
+            <button
+              type="button"
+              key={opt}
+              onClick={() => onToggle(opt)}
+              className={`p-3 rounded-xl text-xs font-bold text-center transition-all border active:scale-95 flex items-center justify-center gap-1.5 ${
+                isSelected
+                  ? activeClass
+                  : 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100'
+              }`}
+            >
+              {isSelected && <Check className="w-3.5 h-3.5 shrink-0" />}
+              <span className="truncate">{opt}</span>
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+
+  // Helper para observaciones de texto en el Wizard
+  const renderWizardTextInput = (
+    title: string,
+    subtitle: string,
+    value: string,
+    onChange: (val: string) => void,
+    placeholder: string
+  ) => (
+    <div className="space-y-3.5 animate-fade-in">
+      <div>
+        <h3 className="text-xs sm:text-sm font-extrabold text-slate-900 leading-snug">
+          {title}
+        </h3>
+        <p className="text-[11px] text-slate-500 mt-0.5">{subtitle}</p>
+      </div>
+
+      <div>
+        <textarea
+          rows={3}
+          value={value}
+          onChange={e => onChange(e.target.value)}
+          placeholder={placeholder}
+          className="w-full p-3 rounded-xl bg-slate-50 border border-slate-200 text-xs sm:text-sm text-slate-900 placeholder-slate-400 focus:bg-white focus:border-[#3b68ff] focus:ring-1 focus:ring-[#3b68ff] resize-none transition-all"
+        />
+        <p className="text-[10px] text-slate-400 mt-1 text-right">
+          Opcional • Dejá en blanco si la muestra cumple el estándar
+        </p>
+      </div>
+    </div>
+  );
+
   return (
     <div className={`w-full max-w-xl mx-auto px-3.5 sm:px-4 py-4 flex-1 flex flex-col justify-between text-slate-800 ${
-      isEvaluationUnlocked ? 'pb-32' : 'pb-4'
+      isEvaluationUnlocked ? 'pb-6' : 'pb-4'
     }`}>
       {/* Contenedor Principal Flexible */}
       <div className="flex-1 space-y-4 flex flex-col">
-        {/* Cabecera Documental Oficial */}
-        <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-sm relative overflow-hidden">
-          <div className="flex items-center justify-between border-b border-slate-100 pb-2.5 mb-3">
-            <div className="flex items-center gap-2.5">
-              <div className="w-2.5 h-2.5 rounded-full bg-[#3b68ff]" />
-              <span className="text-sm font-extrabold tracking-tight text-slate-900 uppercase">
-                Control de Calidad
-              </span>
-              <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-md bg-slate-100 text-[#3b68ff] border border-slate-200">
-                INF-D003
-              </span>
+        {/* Cabecera Documental Oficial - Solo en la primer pantalla */}
+        {(!isEvaluationUnlocked || isEditingSample) && (
+          <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-sm relative overflow-hidden">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-2.5 mb-3">
+              <div className="flex items-center gap-2.5">
+                <div className="w-2.5 h-2.5 rounded-full bg-[#3b68ff]" />
+                <span className="text-sm font-extrabold tracking-tight text-slate-900 uppercase">
+                  Control de Calidad
+                </span>
+                <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-md bg-slate-100 text-[#3b68ff] border border-slate-200">
+                  INF-D003
+                </span>
+              </div>
+              <div className="flex items-center gap-2 text-right">
+                <span className="text-[10px] font-mono text-slate-400">V2.0</span>
+                <span className="text-[10px] font-mono text-[#3b68ff] font-bold px-1.5 py-0.5 rounded bg-blue-50 border border-blue-200">
+                  2026
+                </span>
+              </div>
             </div>
-            <div className="flex items-center gap-2 text-right">
-              <span className="text-[10px] font-mono text-slate-400">V2.0</span>
-              <span className="text-[10px] font-mono text-[#3b68ff] font-bold px-1.5 py-0.5 rounded bg-blue-50 border border-blue-200">
-                2026
-              </span>
-            </div>
-          </div>
 
-          <div>
-            <h1 className="text-base sm:text-lg font-black tracking-tight text-slate-900 flex items-center gap-2">
-              Evaluación Sensorial de Muestra
-            </h1>
-            <p className="text-[11px] text-slate-500 mt-0.5">
-              Protocolo técnico de degustación y control organoléptico
-            </p>
+            <div>
+              <h1 className="text-base sm:text-lg font-black tracking-tight text-slate-900 flex items-center gap-2">
+                Evaluación Sensorial de Muestra
+              </h1>
+              <p className="text-[11px] text-slate-500 mt-0.5">
+                Protocolo técnico de degustación y control organoléptico
+              </p>
+            </div>
           </div>
-        </div>
+        )}
 
       {/* Alerta de guardado exitoso */}
       {successSaved && (
@@ -970,44 +1166,39 @@ export const EvaluationForm: React.FC<EvaluationFormProps> = ({ onSavedSuccess, 
       {/* =========================================================================
           RESUMEN DE MUESTRA ACTIVA (VISIBLE CUANDO LA EVALUACIÓN ESTÁ DESPLEGADA)
           ========================================================================= */}
-      {isEvaluationUnlocked && (
+      {isEvaluationUnlocked && !showThankYou && (
         <div id="resumen-muestra-activa" className="mb-4 p-3.5 rounded-2xl bg-white border border-slate-200 shadow-sm animate-fade-in scroll-mt-20">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-xl bg-blue-50 border border-blue-200 flex items-center justify-center text-[#3b68ff]">
-                <Check className="w-4 h-4 text-[#3b68ff]" />
-              </div>
-              <div>
-                <div className="flex items-center gap-2">
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-[#3b68ff]">
-                    Muestra Activa:
-                  </span>
-                  <span className="text-xs font-mono font-bold px-2 py-0.5 rounded-md bg-slate-100 text-slate-800 border border-slate-200">
-                    {loteBatea}
-                  </span>
-                  {codigoMuestra && (
-                    <span className="text-xs font-mono px-2 py-0.5 rounded-md bg-slate-100 text-slate-600 border border-slate-200">
-                      {codigoMuestra}
-                    </span>
-                  )}
-                </div>
-                <p className="font-black text-sm text-slate-900 mt-0.5">
-                  {gusto === 'OTRO' ? otroGusto : gusto}
-                </p>
-                <p className="text-[11px] text-slate-500">
-                  Evaluador: <span className="text-slate-800 font-semibold">{evaluador}</span> • {fecha} {hora}
-                </p>
-              </div>
+          <div className="flex items-center justify-between gap-2 pb-2 border-b border-slate-100">
+            <div className="flex items-center gap-1.5 flex-wrap">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shrink-0" />
+              <span className="text-[10px] font-black uppercase tracking-wider text-slate-500">Muestra Activa</span>
+              <span className="text-xs font-mono font-bold px-2 py-0.5 rounded-md bg-blue-50 text-[#3b68ff] border border-blue-200">
+                Lote: {loteBatea}
+              </span>
+              {codigoMuestra && (
+                <span className="text-xs font-mono px-2 py-0.5 rounded-md bg-slate-100 text-slate-600 border border-slate-200">
+                  {codigoMuestra}
+                </span>
+              )}
             </div>
 
             <button
               type="button"
               onClick={() => setIsEditingSample(prev => !prev)}
-              className="text-[11px] font-bold text-[#3b68ff] hover:text-[#2563eb] px-2.5 py-1.5 rounded-lg bg-blue-50 hover:bg-blue-100 border border-blue-200 flex items-center gap-1 active:scale-95 transition-all shrink-0"
+              className="text-[11px] font-bold text-[#3b68ff] hover:text-[#2563eb] px-2.5 py-1 rounded-lg bg-blue-50 hover:bg-blue-100 border border-blue-200 flex items-center gap-1 active:scale-95 transition-all shrink-0"
             >
               <Edit3 className="w-3 h-3 text-[#3b68ff]" />
               <span>{isEditingSample ? 'Cerrar' : 'Modificar'}</span>
             </button>
+          </div>
+
+          <div className="pt-2 flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+            <p className="font-black text-sm text-slate-900 leading-tight">
+              {gusto === 'OTRO' ? otroGusto : gusto}
+            </p>
+            <p className="text-[11px] text-slate-500">
+              Evaluador: <span className="text-slate-800 font-semibold">{evaluador}</span> • {fecha} {hora}
+            </p>
           </div>
         </div>
       )}
@@ -1015,365 +1206,622 @@ export const EvaluationForm: React.FC<EvaluationFormProps> = ({ onSavedSuccess, 
       {/* =========================================================================
           VISTA 2: EVALUACIÓN SENSORIAL DESPLEGADA
           ========================================================================= */}
-      {isEvaluationUnlocked && (
-        <form id="evaluacion-sensorial-container" onSubmit={handleSubmit} className="space-y-4 animate-slide-down">
-          {/* 1. VISTA – empanada cortada al medio */}
-          <div className="bg-white p-4 rounded-2xl space-y-3.5 border border-slate-200 shadow-sm">
-            <div className="flex items-center gap-2 pb-2 border-b border-slate-100">
-              <div className="w-6 h-6 rounded-lg bg-blue-50 flex items-center justify-center">
-                <Eye className="w-3.5 h-3.5 text-[#3b68ff]" />
-              </div>
-              <div>
-                <h2 className="text-xs font-black uppercase tracking-wider text-slate-900">
-                  1. VISTA – Empanada cortada al medio
-                </h2>
-                <span className="text-[10px] text-slate-500">Inspección visual del relleno y cocción</span>
-              </div>
-            </div>
+      {/* =========================================================================
+          WIZARD DE EVALUACIÓN SENSORIAL (PASO A PASO POR MÓDULOS Y PREGUNTAS)
+          ========================================================================= */}
+      {isEvaluationUnlocked && !isEditingSample && !showThankYou && (
+        <div id="evaluacion-sensorial-container" className="space-y-4 animate-slide-down">
+          {/* Pestañas de los 4 Módulos */}
+          <div className="grid grid-cols-4 gap-1.5 sm:gap-2">
+            {MODULES.map((mod, idx) => {
+              const ModIcon = mod.icon;
+              const isActive = currentModule === idx;
+              const isCompleted = currentModule > idx;
 
-            {renderSingleSelect('V1. ¿El color del relleno es el esperado para el gusto?', v1_color, setV1_color, ['Sí', 'Más claro', 'Más oscuro'])}
-            {renderSingleSelect('V2. ¿Cómo es la cantidad de relleno?', v2_cantidad, setV2_cantidad, ['Poco', 'Justo', 'Mucho'])}
-            {renderSingleSelect('V3. ¿Cómo está el mezclado de los ingredientes?', v3_mezclado, setV3_mezclado, ['Parejo', 'Desparejo', 'Sin mezclar'])}
-            {renderSingleSelect('V4. ¿Están todos los ingredientes de la receta?', v4_ingredientesReceta, setV4_ingredientesReceta, ['Sí', 'Falta alguno'])}
-            {renderSingleSelect('V5. ¿Hay algún ingrediente que no corresponde al gusto?', v5_ingredienteExtrano, setV5_ingredienteExtrano, ['No', 'Sí'])}
-            {renderSingleSelect('V6. ¿Cómo está sellada la carne / pollo?', v6_selladoCarne, setV6_selladoCarne, ['Gris o hervida', 'Dorada y jugosa', 'Seca o quemada', 'N/A'])}
-            {renderSingleSelect('V7. ¿Cómo están rehogados los vegetales?', v7_rehogadoVegetales, setV7_rehogadoVegetales, ['Crudos', 'Justo', 'Quemados', 'N/A'])}
-            {renderSingleSelect('V8. ¿Cómo está la caramelización (cebolla u otro)?', v8_caramelizacion, setV8_caramelizacion, ['Poca', 'Justa', 'Excesiva', 'N/A'])}
-
-            <div>
-              <label className="block text-[11px] font-semibold text-slate-600 mb-1">Observaciones Vista:</label>
-              <input
-                type="text"
-                placeholder="Anotá el detalle si marcaste una respuesta fuera de lo esperado..."
-                value={obs_vista}
-                onChange={e => setObs_vista(e.target.value)}
-                className="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-900 placeholder-slate-400 focus:bg-white focus:border-[#3b68ff]"
-              />
-            </div>
-          </div>
-
-          {/* 2. OLFATO – relleno recién cortado */}
-          <div className="bg-white p-4 rounded-2xl space-y-3.5 border border-slate-200 shadow-sm">
-            <div className="flex items-center gap-2 pb-2 border-b border-slate-100">
-              <div className="w-6 h-6 rounded-lg bg-blue-50 flex items-center justify-center">
-                <Wind className="w-3.5 h-3.5 text-[#3b68ff]" />
-              </div>
-              <div>
-                <h2 className="text-xs font-black uppercase tracking-wider text-slate-900">
-                  2. OLFATO – Relleno recién cortado
-                </h2>
-                <span className="text-[10px] text-slate-500">Intensidad y notas aromáticas</span>
-              </div>
-            </div>
-
-            {renderSingleSelect('O1. ¿Cómo es la intensidad del aroma?', o1_intensidadAroma, setO1_intensidadAroma, ['Débil', 'Justa', 'Fuerte'])}
-            {renderSingleSelect('O2. ¿Reconocés el aroma característico del gusto?', o2_aromaCaracteristico, setO2_aromaCaracteristico, ['Sí', 'Poco', 'No'])}
-
-            {/* O3 Olor extraño (multiselección) */}
-            <div className="space-y-1.5">
-              <span className="text-xs font-semibold text-slate-700 block">O3. ¿Sentís algún olor extraño?</span>
-              <div className="flex flex-wrap gap-1.5">
-                {(['No', 'Quemado', 'Rancio', 'Aceite viejo', 'Ácido', 'Otro'] as const).map(opt => {
-                  const isSelected = o3_olorExtrano.includes(opt);
-                  return (
-                    <button
-                      type="button"
-                      key={opt}
-                      onClick={() => toggleArrayItem(o3_olorExtrano, setO3_olorExtrano, opt, 'No')}
-                      className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all border active:scale-95 ${
-                        isSelected
-                          ? opt === 'No'
-                            ? 'bg-emerald-600 text-white border-emerald-500 shadow-sm'
-                            : 'bg-[#ff5757] text-white border-[#ff5757] shadow-sm'
-                          : 'bg-slate-100 border-slate-200 text-slate-700 hover:text-slate-900 hover:bg-slate-200'
-                      }`}
-                    >
-                      {opt}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-[11px] font-semibold text-slate-600 mb-1">Observaciones Olfato:</label>
-              <input
-                type="text"
-                placeholder="Detalle de olores u observaciones aromáticas..."
-                value={obs_olfato}
-                onChange={e => setObs_olfato(e.target.value)}
-                className="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-900 placeholder-slate-400 focus:bg-white focus:border-[#3b68ff]"
-              />
-            </div>
-          </div>
-
-          {/* 3. BOCA – primer bocado, masa y relleno juntos */}
-          <div className="bg-white p-4 rounded-2xl space-y-3.5 border border-slate-200 shadow-sm">
-            <div className="flex items-center gap-2 pb-2 border-b border-slate-100">
-              <div className="w-6 h-6 rounded-lg bg-blue-50 flex items-center justify-center">
-                <Smile className="w-3.5 h-3.5 text-[#3b68ff]" />
-              </div>
-              <div>
-                <h2 className="text-xs font-black uppercase tracking-wider text-slate-900">
-                  3. BOCA – Primer bocado, masa y relleno juntos
-                </h2>
-                <span className="text-[10px] text-slate-500">Gusto en boca, textura y retrogusto</span>
-              </div>
-            </div>
-
-            {/* B1 Primer impacto (selección múltiple de sensaciones) */}
-            <div className="space-y-1.5">
-              <span className="text-xs font-semibold text-slate-700 block">B1. ¿Qué fue lo primero que sentiste al morder?</span>
-              <div className="flex flex-wrap gap-1.5">
-                {(['Masa', 'Carne / proteína', 'Queso', 'Cebolla', 'Especias', 'Picante', 'Sal', 'Dulce', 'Grasa'] as const).map(opt => {
-                  const isSelected = b1_primerImpacto.includes(opt);
-                  return (
-                    <button
-                      type="button"
-                      key={opt}
-                      onClick={() => toggleArrayItem(b1_primerImpacto, setB1_primerImpacto, opt)}
-                      className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all border active:scale-95 ${
-                        isSelected
-                          ? 'bg-[#3b68ff] text-white border-[#3b68ff] shadow-sm'
-                          : 'bg-slate-100 border-slate-200 text-slate-700 hover:text-slate-900 hover:bg-slate-200'
-                      }`}
-                    >
-                      {opt}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-
-            {renderSingleSelect('B2. ¿Cómo es la textura de la masa?', b2_texturaMasa, setB2_texturaMasa, ['Cruda', 'Tierna', 'Crocante', 'Dura'])}
-            {renderSingleSelect('B3. ¿Cómo es la jugosidad del relleno?', b3_jugosidadRelleno, setB3_jugosidadRelleno, ['Seco', 'Jugoso', 'Muy húmedo'])}
-            {renderSingleSelect('B4. ¿Cómo es la textura de la carne / pollo?', b4_texturaCarne, setB4_texturaCarne, ['Tierna', 'Dura', 'Fibrosa', 'N/A'])}
-            {renderSingleSelect('B5. ¿Cómo está de sal?', b5_sal, setB5_sal, ['Poca', 'Justa', 'Mucha'])}
-            {renderSingleSelect('B6. ¿Cómo está de dulce?', b6_dulce, setB6_dulce, ['Poco', 'Justo', 'Mucho'])}
-            {renderSingleSelect('B7. ¿Cómo está de picante?', b7_picante, setB7_picante, ['Poco', 'Justo', 'Mucho', 'No debería picar'])}
-            {renderSingleSelect('B8. ¿Cómo es el sabor característico del gusto?', b8_saborCaracteristico, setB8_saborCaracteristico, ['Débil', 'Justo', 'Intenso'])}
-            {renderSingleSelect('B9. ¿Algún ingrediente tapa a los demás?', b9_ingredienteTapa, setB9_ingredienteTapa, ['No', 'Sí'])}
-
-            {/* B10 Sabor extraño */}
-            <div className="space-y-1.5">
-              <span className="text-xs font-semibold text-slate-700 block">B10. ¿Sentís algún sabor extraño?</span>
-              <div className="flex flex-wrap gap-1.5">
-                {(['No', 'Quemado', 'Rancio', 'Aceite viejo', 'Ácido', 'Otro'] as const).map(opt => {
-                  const isSelected = b10_saborExtrano.includes(opt);
-                  return (
-                    <button
-                      type="button"
-                      key={opt}
-                      onClick={() => toggleArrayItem(b10_saborExtrano, setB10_saborExtrano, opt, 'No')}
-                      className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all border active:scale-95 ${
-                        isSelected
-                          ? opt === 'No'
-                            ? 'bg-emerald-600 text-white border-emerald-500 shadow-sm'
-                            : 'bg-[#ff5757] text-white border-[#ff5757] shadow-sm'
-                          : 'bg-slate-100 border-slate-200 text-slate-700 hover:text-slate-900 hover:bg-slate-200'
-                      }`}
-                    >
-                      {opt}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-
-            {renderSingleSelect('B11. ¿Qué sabor te queda después de tragar?', b11_retrogusto, setB11_retrogusto, ['Agradable', 'Neutro', 'Desagradable'])}
-
-            <div>
-              <label className="block text-[11px] font-semibold text-slate-600 mb-1">Observaciones Boca:</label>
-              <input
-                type="text"
-                placeholder="Detalle sobre textura, paladar, balance de sabor..."
-                value={obs_boca}
-                onChange={e => setObs_boca(e.target.value)}
-                className="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-900 placeholder-slate-400 focus:bg-white focus:border-[#3b68ff]"
-              />
-            </div>
-          </div>
-
-          {/* 4. EVALUACIÓN GLOBAL */}
-          <div className="bg-white p-4 rounded-2xl space-y-4 border border-slate-200 shadow-sm">
-            <div className="flex items-center gap-2 pb-2 border-b border-slate-100">
-              <div className="w-6 h-6 rounded-lg bg-blue-50 flex items-center justify-center">
-                <Award className="w-3.5 h-3.5 text-[#3b68ff]" />
-              </div>
-              <div>
-                <h2 className="text-xs font-black uppercase tracking-wider text-slate-900">
-                  4. EVALUACIÓN GLOBAL
-                </h2>
-                <span className="text-[10px] text-slate-500">Puntaje global y dictamen de calidad</span>
-              </div>
-            </div>
-
-            {renderSingleSelect('G1. ¿Es igual al estándar del gusto?', g1_estandarGusto, setG1_estandarGusto, ['Igual', 'Leve diferencia', 'Muy diferente'])}
-
-            {/* G2 ¿Cuánto te gusta en general? 1 a 5 con diseño de estrellas */}
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-semibold text-slate-700 block">
-                  G2. ¿Cuánto te gusta en general?
-                </span>
-                <span className="text-xs font-bold text-amber-600">
-                  {g2_gustoGeneral} de 5 {g2_gustoGeneral === 5 ? '★ Excelente' : g2_gustoGeneral >= 4 ? '★ Muy Bueno' : '★ Aceptable'}
-                </span>
-              </div>
-              <div className="grid grid-cols-5 gap-2">
-                {[1, 2, 3, 4, 5].map(num => (
-                  <button
-                    type="button"
-                    key={num}
-                    onClick={() => setG2_gustoGeneral(num)}
-                    className={`py-2.5 rounded-xl text-xs font-extrabold transition-all border active:scale-95 flex flex-col items-center justify-center gap-1 ${
-                      g2_gustoGeneral === num
-                        ? 'bg-amber-50 border-amber-400 text-amber-800 shadow-sm'
-                        : 'bg-slate-50 border-slate-200 text-slate-400 hover:text-slate-700 hover:bg-slate-100'
-                    }`}
-                  >
-                    <Star className={`w-4 h-4 ${g2_gustoGeneral >= num ? 'fill-amber-400 text-amber-400' : 'text-slate-300'}`} />
-                    <span>{num}</span>
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* G3 ¿Aprobarías este producto? con semáforo */}
-            <div className="space-y-1.5">
-              <span className="text-xs font-semibold text-slate-700 block">G3. ¿Aprobarías este producto para despacho?</span>
-              <div className="grid grid-cols-3 gap-2">
-                {(['Sí', 'Sí con observaciones', 'No'] as const).map(opt => {
-                  const isSelected = g3_aprobacion === opt;
-                  let colorClass = 'bg-slate-100 border-slate-200 text-slate-600 hover:bg-slate-200';
-                  if (isSelected) {
-                    if (opt === 'Sí') colorClass = 'bg-emerald-600 text-white border-emerald-500 shadow-sm';
-                    else if (opt === 'Sí con observaciones') colorClass = 'bg-amber-600 text-white border-amber-500 shadow-sm';
-                    else colorClass = 'bg-[#ff5757] text-white border-[#ff5757] shadow-sm';
-                  }
-                  return (
-                    <button
-                      type="button"
-                      key={opt}
-                      onClick={() => setG3_aprobacion(opt)}
-                      className={`py-2 px-1.5 rounded-xl text-xs font-extrabold text-center transition-all border active:scale-95 ${colorClass}`}
-                    >
-                      {opt}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-[11px] font-semibold text-slate-600 mb-1">Observaciones Globales:</label>
-              <textarea
-                rows={2}
-                placeholder="Conclusión general sobre la partida o batea..."
-                value={obs_global}
-                onChange={e => setObs_global(e.target.value)}
-                className="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-900 placeholder-slate-400 resize-none focus:bg-white focus:border-[#3b68ff]"
-              />
-            </div>
-          </div>
-
-          {/* FIRMA Y EVIDENCIA FOTOGRÁFICA */}
-          <div className="bg-white p-4 rounded-2xl space-y-3.5 border border-slate-200 shadow-sm">
-            <div className="flex items-center justify-between pb-2 border-b border-slate-100">
-              <div className="flex items-center gap-2">
-                <div className="w-6 h-6 rounded-lg bg-blue-50 flex items-center justify-center">
-                  <PenTool className="w-3.5 h-3.5 text-[#3b68ff]" />
-                </div>
-                <h2 className="text-xs font-black uppercase tracking-wider text-slate-900">
-                  Firma del Evaluador & Fotos
-                </h2>
-              </div>
-              {hasSignature && (
+              return (
                 <button
+                  key={mod.id}
                   type="button"
-                  onClick={clearSignature}
-                  className="text-[11px] text-[#ff5757] hover:text-red-700 font-bold flex items-center gap-1 active:scale-95 transition-all"
+                  onClick={() => {
+                    setCurrentModule(idx);
+                    setCurrentQuestion(0);
+                  }}
+                  className={`p-2 sm:p-2.5 rounded-xl border text-center transition-all flex flex-col items-center gap-1 ${
+                    isActive
+                      ? 'bg-[#3b68ff] border-[#3b68ff] text-white shadow-sm'
+                      : isCompleted
+                      ? 'bg-blue-50 border-blue-200 text-[#3b68ff]'
+                      : 'bg-white border-slate-200 text-slate-400 hover:text-slate-600 hover:bg-slate-50'
+                  }`}
                 >
-                  <RotateCcw className="w-3 h-3" />
-                  <span>Borrar Firma</span>
+                  <div className="flex items-center gap-1">
+                    {isCompleted ? (
+                      <Check className="w-3.5 h-3.5 stroke-[2.5]" />
+                    ) : (
+                      <ModIcon className="w-3.5 h-3.5" />
+                    )}
+                  </div>
+                  <span className="text-[10px] sm:text-[11px] font-extrabold tracking-tight truncate w-full">
+                    {mod.name}
+                  </span>
                 </button>
+              );
+            })}
+          </div>
+
+          {/* Tarjeta Activa del Wizard */}
+          <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+            {/* Cabecera del Módulo */}
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+              <div className="flex items-center gap-2">
+                <div className="w-7 h-7 rounded-lg bg-blue-50 flex items-center justify-center text-[#3b68ff]">
+                  {currentModule === 0 && <Eye className="w-4 h-4 text-[#3b68ff]" />}
+                  {currentModule === 1 && <Wind className="w-4 h-4 text-[#3b68ff]" />}
+                  {currentModule === 2 && <Smile className="w-4 h-4 text-[#3b68ff]" />}
+                  {currentModule === 3 && <Award className="w-4 h-4 text-[#3b68ff]" />}
+                </div>
+                <div>
+                  <h2 className="text-xs sm:text-sm font-black uppercase tracking-wider text-slate-900">
+                    {MODULES[currentModule].title}
+                  </h2>
+                  <span className="text-[10px] text-slate-500">
+                    {MODULES[currentModule].subtitle}
+                  </span>
+                </div>
+              </div>
+
+              <div className="text-right">
+                <span className="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 border border-slate-200">
+                  {currentQuestion + 1} de {MODULES[currentModule].totalQuestions}
+                </span>
+              </div>
+            </div>
+
+            {/* Barra de progreso de la pregunta en el módulo */}
+            <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
+              <div
+                className="h-full bg-[#3b68ff] rounded-full transition-all duration-300"
+                style={{
+                  width: `${((currentQuestion + 1) / MODULES[currentModule].totalQuestions) * 100}%`
+                }}
+              />
+            </div>
+
+            {/* Pregunta Activa */}
+            <div className="pt-2">
+              {/* MÓDULO 0: VISTA */}
+              {currentModule === 0 && (
+                <>
+                  {currentQuestion === 0 && renderWizardSingleSelect(
+                    'V1. ¿El color del relleno es el esperado para el gusto?',
+                    'Tonalidad y color característico',
+                    v1_color,
+                    setV1_color,
+                    ['Sí', 'Más claro', 'Más oscuro']
+                  )}
+                  {currentQuestion === 1 && renderWizardSingleSelect(
+                    'V2. ¿Cómo es la cantidad de relleno?',
+                    'Proporción y carga de relleno',
+                    v2_cantidad,
+                    setV2_cantidad,
+                    ['Justo', 'Poco', 'Mucho']
+                  )}
+                  {currentQuestion === 2 && renderWizardSingleSelect(
+                    'V3. ¿Cómo está el mezclado de los ingredientes?',
+                    'Homogeneidad de la preparación',
+                    v3_mezclado,
+                    setV3_mezclado,
+                    ['Parejo', 'Desparejo', 'Sin mezclar']
+                  )}
+                  {currentQuestion === 3 && renderWizardSingleSelect(
+                    'V4. ¿Están todos los ingredientes de la receta?',
+                    'Presencia de componentes obligatorios',
+                    v4_ingredientesReceta,
+                    setV4_ingredientesReceta,
+                    ['Sí', 'Falta alguno']
+                  )}
+                  {currentQuestion === 4 && renderWizardSingleSelect(
+                    'V5. ¿Hay algún ingrediente que no corresponde al gusto?',
+                    'Detección de contaminación o desvío',
+                    v5_ingredienteExtrano,
+                    setV5_ingredienteExtrano,
+                    ['No', 'Sí']
+                  )}
+                  {currentQuestion === 5 && renderWizardSingleSelect(
+                    'V6. ¿Cómo está sellada la carne / pollo?',
+                    'Punto de cocción y sellado',
+                    v6_selladoCarne,
+                    setV6_selladoCarne,
+                    ['Dorada y jugosa', 'Gris o hervida', 'Seca o quemada', 'N/A']
+                  )}
+                  {currentQuestion === 6 && renderWizardSingleSelect(
+                    'V7. ¿Cómo están rehogados los vegetales?',
+                    'Punto de cocción de vegetales',
+                    v7_rehogadoVegetales,
+                    setV7_rehogadoVegetales,
+                    ['Justo', 'Crudos', 'Quemados', 'N/A']
+                  )}
+                  {currentQuestion === 7 && renderWizardSingleSelect(
+                    'V8. ¿Cómo está la caramelización (cebolla u otro)?',
+                    'Nivel de caramelizado',
+                    v8_caramelizacion,
+                    setV8_caramelizacion,
+                    ['Justa', 'Poca', 'Excesiva', 'N/A']
+                  )}
+                  {currentQuestion === 8 && renderWizardTextInput(
+                    'Observaciones Vista',
+                    'Detallá cualquier anomalía visual o comentario de masa/relleno',
+                    obs_vista,
+                    setObs_vista,
+                    'Anotá el detalle si marcaste una respuesta fuera de lo esperado...'
+                  )}
+                </>
+              )}
+
+              {/* MÓDULO 1: OLFATO */}
+              {currentModule === 1 && (
+                <>
+                  {currentQuestion === 0 && renderWizardSingleSelect(
+                    'O1. ¿Cómo es la intensidad del aroma?',
+                    'Proyección aromática al corte',
+                    o1_intensidadAroma,
+                    setO1_intensidadAroma,
+                    ['Justa', 'Débil', 'Fuerte']
+                  )}
+                  {currentQuestion === 1 && renderWizardSingleSelect(
+                    'O2. ¿Reconocés el aroma característico del gusto?',
+                    'Identidad olfativa del producto',
+                    o2_aromaCaracteristico,
+                    setO2_aromaCaracteristico,
+                    ['Sí', 'Poco', 'No']
+                  )}
+                  {currentQuestion === 2 && renderWizardMultiSelect(
+                    'O3. ¿Sentís algún olor extraño?',
+                    'Seleccioná si detectás algún defecto aromático',
+                    ['No', 'Quemado', 'Rancio', 'Aceite viejo', 'Ácido', 'Otro'],
+                    o3_olorExtrano,
+                    (opt: any) => toggleArrayItem(o3_olorExtrano, setO3_olorExtrano, opt, 'No'),
+                    'No'
+                  )}
+                  {currentQuestion === 3 && renderWizardTextInput(
+                    'Observaciones Olfato',
+                    'Detalle de olores atípicos u observaciones aromáticas',
+                    obs_olfato,
+                    setObs_olfato,
+                    'Detalle de olores u observaciones aromáticas...'
+                  )}
+                </>
+              )}
+
+              {/* MÓDULO 2: BOCA */}
+              {currentModule === 2 && (
+                <>
+                  {currentQuestion === 0 && renderWizardMultiSelect(
+                    'B1. ¿Qué fue lo primero que sentiste al morder?',
+                    'Primer impacto sensorial en boca (podés seleccionar varios)',
+                    ['Masa', 'Carne / proteína', 'Queso', 'Cebolla', 'Especias', 'Picante', 'Sal', 'Dulce', 'Grasa'],
+                    b1_primerImpacto,
+                    (opt: any) => toggleArrayItem(b1_primerImpacto, setB1_primerImpacto, opt)
+                  )}
+                  {currentQuestion === 1 && renderWizardSingleSelect(
+                    'B2. ¿Cómo es la textura de la masa?',
+                    'Textura al morder',
+                    b2_texturaMasa,
+                    setB2_texturaMasa,
+                    ['Tierna', 'Crocante', 'Cruda', 'Dura']
+                  )}
+                  {currentQuestion === 2 && renderWizardSingleSelect(
+                    'B3. ¿Cómo es la jugosidad del relleno?',
+                    'Humedad y jugosidad al masticar',
+                    b3_jugosidadRelleno,
+                    setB3_jugosidadRelleno,
+                    ['Jugoso', 'Seco', 'Muy húmedo']
+                  )}
+                  {currentQuestion === 3 && renderWizardSingleSelect(
+                    'B4. ¿Cómo es la textura de la carne / pollo?',
+                    'Consistencia de la proteína',
+                    b4_texturaCarne,
+                    setB4_texturaCarne,
+                    ['Tierna', 'Dura', 'Fibrosa', 'N/A']
+                  )}
+                  {currentQuestion === 4 && renderWizardSingleSelect(
+                    'B5. ¿Cómo está de sal?',
+                    'Nivel de salazón',
+                    b5_sal,
+                    setB5_sal,
+                    ['Justa', 'Poca', 'Mucha']
+                  )}
+                  {currentQuestion === 5 && renderWizardSingleSelect(
+                    'B6. ¿Cómo está de dulce?',
+                    'Nivel de dulzor',
+                    b6_dulce,
+                    setB6_dulce,
+                    ['Justo', 'Poco', 'Mucho']
+                  )}
+                  {currentQuestion === 6 && renderWizardSingleSelect(
+                    'B7. ¿Cómo está de picante?',
+                    'Intensidad de picor',
+                    b7_picante,
+                    setB7_picante,
+                    ['Justo', 'Poco', 'Mucho', 'No debería picar']
+                  )}
+                  {currentQuestion === 7 && renderWizardSingleSelect(
+                    'B8. ¿Cómo es el sabor característico del gusto?',
+                    'Fidelidad del sabor a la receta original',
+                    b8_saborCaracteristico,
+                    setB8_saborCaracteristico,
+                    ['Justo', 'Intenso', 'Débil']
+                  )}
+                  {currentQuestion === 8 && renderWizardSingleSelect(
+                    'B9. ¿Algún ingrediente tapa a los demás?',
+                    'Equilibrio de ingredientes',
+                    b9_ingredienteTapa,
+                    setB9_ingredienteTapa,
+                    ['No', 'Sí']
+                  )}
+                  {currentQuestion === 9 && renderWizardMultiSelect(
+                    'B10. ¿Sentís algún sabor extraño?',
+                    'Seleccioná si detectás algún defecto de sabor',
+                    ['No', 'Quemado', 'Rancio', 'Aceite viejo', 'Ácido', 'Otro'],
+                    b10_saborExtrano,
+                    (opt: any) => toggleArrayItem(b10_saborExtrano, setB10_saborExtrano, opt, 'No'),
+                    'No'
+                  )}
+                  {currentQuestion === 10 && renderWizardSingleSelect(
+                    'B11. ¿Qué sabor te queda después de tragar?',
+                    'Retrogusto y sensación final',
+                    b11_retrogusto,
+                    setB11_retrogusto,
+                    ['Agradable', 'Neutro', 'Desagradable']
+                  )}
+                  {currentQuestion === 11 && renderWizardTextInput(
+                    'Observaciones Boca',
+                    'Detalle sobre textura, paladar o balance de sabor',
+                    obs_boca,
+                    setObs_boca,
+                    'Detalle sobre textura, paladar, balance de sabor...'
+                  )}
+                </>
+              )}
+
+              {/* MÓDULO 3: GLOBAL & FIRMA */}
+              {currentModule === 3 && (
+                <>
+                  {currentQuestion === 0 && renderWizardSingleSelect(
+                    'G1. ¿Es igual al estándar del gusto?',
+                    'Comparación contra el estándar de Mi Gusto',
+                    g1_estandarGusto,
+                    setG1_estandarGusto,
+                    ['Igual', 'Leve diferencia', 'Muy diferente']
+                  )}
+
+                  {currentQuestion === 1 && (
+                    <div className="space-y-4 animate-fade-in text-center py-2">
+                      <div>
+                        <h3 className="text-xs sm:text-sm font-extrabold text-slate-900 leading-snug">
+                          G2. ¿Cuánto te gusta en general?
+                        </h3>
+                        <p className="text-[11px] text-slate-500 mt-0.5">
+                          Asigná una calificación general de 1 a 5 estrellas
+                        </p>
+                      </div>
+
+                      <div className="flex items-center justify-center gap-2 sm:gap-3 py-4">
+                        {[1, 2, 3, 4, 5].map((star) => (
+                          <button
+                            key={star}
+                            type="button"
+                            onClick={() => setG2_gustoGeneral(star)}
+                            className="p-1.5 sm:p-2 rounded-2xl transition-transform active:scale-90 hover:scale-110"
+                          >
+                            <Star
+                              className={`w-9 h-9 sm:w-11 sm:h-11 transition-colors ${
+                                star <= g2_gustoGeneral
+                                  ? 'fill-amber-400 text-amber-500 drop-shadow-sm'
+                                  : 'fill-slate-100 text-slate-300'
+                              }`}
+                            />
+                          </button>
+                        ))}
+                      </div>
+
+                      <div className="inline-block px-4 py-1.5 rounded-full bg-amber-50 border border-amber-200 text-amber-800 font-extrabold text-xs">
+                        {g2_gustoGeneral} de 5 {g2_gustoGeneral === 5 ? '★ Excelente' : g2_gustoGeneral >= 4 ? '★ Muy Bueno' : '★ Aceptable'}
+                      </div>
+                    </div>
+                  )}
+
+                  {currentQuestion === 2 && (
+                    <div className="space-y-3.5 animate-fade-in">
+                      <div>
+                        <h3 className="text-xs sm:text-sm font-extrabold text-slate-900 leading-snug">
+                          G3. ¿Aprobarías este producto para despacho?
+                        </h3>
+                        <p className="text-[11px] text-slate-500 mt-0.5">
+                          Resolución final de calidad para liberar el lote
+                        </p>
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                        {[
+                          { id: 'Sí', label: 'Sí (Aprobado)', desc: 'Apto para despacho' },
+                          { id: 'Sí con observaciones', label: 'Sí c/ Observaciones', desc: 'Con desvíos menores' },
+                          { id: 'No', label: 'No (Rechazado)', desc: 'Bloquear lote / No conforme' }
+                        ].map(item => {
+                          const isSelected = g3_aprobacion === item.id;
+                          return (
+                            <button
+                              key={item.id}
+                              type="button"
+                              onClick={() => setG3_aprobacion(item.id as any)}
+                              className={`p-3 rounded-xl border text-center transition-all active:scale-95 ${
+                                isSelected
+                                  ? item.id === 'Sí'
+                                    ? 'bg-emerald-600 text-white border-emerald-600 shadow-sm'
+                                    : item.id === 'Sí con observaciones'
+                                    ? 'bg-amber-600 text-white border-amber-600 shadow-sm'
+                                    : 'bg-[#ff5757] text-white border-[#ff5757] shadow-sm'
+                                  : 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100'
+                              }`}
+                            >
+                              <p className="font-extrabold text-xs">{item.label}</p>
+                              <p className={`text-[10px] mt-0.5 ${isSelected ? 'text-white/80' : 'text-slate-400'}`}>
+                                {item.desc}
+                              </p>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+
+                  {currentQuestion === 3 && renderWizardTextInput(
+                    'Observaciones Globales',
+                    'Conclusión general sobre la partida o batea evaluada',
+                    obs_global,
+                    setObs_global,
+                    'Conclusión general sobre la partida o batea...'
+                  )}
+
+                  {currentQuestion === 4 && (
+                    <div className="space-y-4 animate-fade-in">
+                      <div>
+                        <h3 className="text-xs sm:text-sm font-extrabold text-slate-900 leading-snug">
+                          Firma del Evaluador & Evidencias Fotográficas
+                        </h3>
+                        <p className="text-[11px] text-slate-500 mt-0.5">
+                          Firmá digitalmente para dar validez técnica a la evaluación INF-D003
+                        </p>
+                      </div>
+
+                      {/* Firma digital */}
+                      <div>
+                        <div className="flex items-center justify-between mb-1.5">
+                          <span className="text-[11px] text-slate-700 font-bold">
+                            Firma del Evaluador ({evaluador}):
+                          </span>
+                          {hasSignature && (
+                            <button
+                              type="button"
+                              onClick={clearSignature}
+                              className="text-[10px] text-rose-600 font-bold hover:underline"
+                            >
+                              Limpiar firma
+                            </button>
+                          )}
+                        </div>
+                        <div className="rounded-xl border border-slate-300 bg-slate-50 overflow-hidden touch-none shadow-sm">
+                          <canvas
+                            ref={canvasRef}
+                            width={380}
+                            height={120}
+                            onMouseDown={startDrawing}
+                            onMouseUp={stopDrawing}
+                            onMouseMove={draw}
+                            onTouchStart={startDrawing}
+                            onTouchEnd={stopDrawing}
+                            onTouchMove={draw}
+                            className="w-full h-[110px] cursor-crosshair bg-slate-50"
+                          />
+                        </div>
+                      </div>
+
+                      {/* Fotos de la Muestra */}
+                      <div className="pt-2">
+                        <span className="text-[11px] text-slate-700 font-bold block mb-1.5">
+                          Fotos de la muestra cortada (opcional):
+                        </span>
+                        <div className="flex flex-wrap items-center gap-2.5">
+                          <label className="flex flex-col items-center justify-center w-20 h-20 rounded-xl border-2 border-dashed border-slate-300 hover:border-[#3b68ff] bg-slate-50 hover:bg-slate-100 text-[#3b68ff] cursor-pointer active:scale-95 transition-all shadow-sm">
+                            <Camera className="w-5 h-5 mb-1 text-[#3b68ff]" />
+                            <span className="text-[9.5px] font-bold">Subir</span>
+                            <input
+                              type="file"
+                              accept="image/*"
+                              multiple
+                              onChange={handlePhotoUpload}
+                              className="hidden"
+                            />
+                          </label>
+
+                          {photos.map((src, idx) => (
+                            <div key={idx} className="relative w-20 h-20 rounded-xl overflow-hidden group border border-slate-200 shadow-sm">
+                              <img src={src} alt={`Evidencia ${idx}`} className="w-full h-full object-cover" />
+                              <button
+                                type="button"
+                                onClick={() => removePhoto(idx)}
+                                className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex items-center justify-center text-rose-400 transition-opacity"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </>
               )}
             </div>
 
+            {/* Barra de Navegación del Wizard */}
+            <div className="pt-4 border-t border-slate-100 flex items-center justify-between gap-2">
+              {/* Botón Anterior */}
+              <button
+                type="button"
+                onClick={handlePrevStep}
+                disabled={currentModule === 0 && currentQuestion === 0}
+                className="px-3.5 py-2.5 rounded-xl border border-slate-200 text-slate-700 bg-slate-50 hover:bg-slate-100 text-xs font-bold flex items-center gap-1.5 disabled:opacity-30 disabled:pointer-events-none active:scale-95 transition-all"
+              >
+                <ArrowLeft className="w-4 h-4" />
+                <span>Anterior</span>
+              </button>
+
+              {/* Botón Siguiente / Siguiente Módulo / Guardar */}
+              {currentModule === 3 && currentQuestion === 4 ? (
+                <button
+                  type="button"
+                  onClick={handleSubmit}
+                  disabled={saving || isAnalyzing}
+                  className="flex-1 py-3 px-4 rounded-xl bg-[#3b68ff] hover:bg-[#2563eb] text-white font-extrabold text-xs tracking-wider uppercase shadow-md shadow-[#3b68ff]/25 active:scale-[0.98] transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+                >
+                  <Save className="w-4 h-4" />
+                  <span>Guardar Evaluación Sensorial (INF-D003)</span>
+                </button>
+              ) : currentQuestion === MODULES[currentModule].totalQuestions - 1 ? (
+                <button
+                  type="button"
+                  onClick={handleNextStep}
+                  className="flex-1 py-3 px-4 rounded-xl bg-[#3b68ff] hover:bg-[#2563eb] text-white font-extrabold text-xs tracking-wider uppercase shadow-md shadow-[#3b68ff]/25 active:scale-[0.98] transition-all flex items-center justify-center gap-2 group"
+                >
+                  <span>Siguiente Módulo: {MODULES[currentModule + 1].name}</span>
+                  <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={handleNextStep}
+                  className="flex-1 py-3 px-4 rounded-xl bg-[#3b68ff] hover:bg-[#2563eb] text-white font-extrabold text-xs tracking-wider uppercase shadow-md shadow-[#3b68ff]/25 active:scale-[0.98] transition-all flex items-center justify-center gap-2 group"
+                >
+                  <span>Siguiente</span>
+                  <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* =========================================================================
+          PANTALLA DE CARGA / ANÁLISIS SENSORIAL (5 SEGUNDOS)
+          ========================================================================= */}
+      {isAnalyzing && (
+        <div className="fixed inset-0 z-50 bg-slate-900/80 backdrop-blur-md flex items-center justify-center p-4 animate-fade-in">
+          <div className="bg-white rounded-3xl p-6 sm:p-8 max-w-md w-full border border-slate-200 shadow-2xl text-center space-y-6">
+            <div className="relative w-24 h-24 mx-auto flex items-center justify-center">
+              <div className="absolute inset-0 rounded-full bg-blue-100 animate-ping opacity-60" />
+              <div className="absolute inset-2 rounded-full bg-blue-50 border-2 border-[#3b68ff]/30 animate-pulse" />
+              <div className="relative w-16 h-16 rounded-2xl bg-[#3b68ff] text-white flex items-center justify-center shadow-lg shadow-[#3b68ff]/30">
+                <Sparkles className="w-8 h-8 animate-spin" style={{ animationDuration: '3s' }} />
+              </div>
+            </div>
+
             <div>
-              <span className="text-[11px] text-slate-600 font-medium block mb-1.5">
-                Dibujá tu firma en el recuadro digital:
+              <span className="text-[10px] font-black uppercase tracking-widest text-[#3b68ff] bg-blue-50 px-3 py-1 rounded-full border border-blue-200">
+                Control de Calidad Mi Gusto
               </span>
-              <div className="rounded-xl border border-slate-300 bg-slate-50 overflow-hidden touch-none shadow-sm">
-                <canvas
-                  ref={canvasRef}
-                  width={380}
-                  height={120}
-                  onMouseDown={startDrawing}
-                  onMouseUp={stopDrawing}
-                  onMouseMove={draw}
-                  onTouchStart={startDrawing}
-                  onTouchEnd={stopDrawing}
-                  onTouchMove={draw}
-                  className="w-full h-[110px] cursor-crosshair bg-slate-50"
+              <h3 className="text-lg sm:text-xl font-black text-slate-900 mt-3">
+                Analizando Evaluación Sensorial
+              </h3>
+              <p className="text-xs text-slate-500 mt-1">
+                Procesando parámetros organolépticos según protocolo INF-D003...
+              </p>
+            </div>
+
+            {/* Etapa actual y Barra de Progreso */}
+            <div className="space-y-2">
+              <div className="flex justify-between items-center text-xs font-bold">
+                <span className="text-slate-700 truncate max-w-[240px] text-left">
+                  {analysisStageText}
+                </span>
+                <span className="text-[#3b68ff] font-mono">{analysisProgress}%</span>
+              </div>
+              <div className="w-full h-3 rounded-full bg-slate-100 overflow-hidden border border-slate-200">
+                <div
+                  className="h-full bg-gradient-to-r from-[#3b68ff] to-[#2563eb] rounded-full transition-all duration-100 ease-out"
+                  style={{ width: `${analysisProgress}%` }}
                 />
               </div>
             </div>
 
-            {/* Fotos de la Muestra */}
-            <div className="pt-2">
-              <span className="text-[11px] text-slate-600 font-medium block mb-1.5">
-                Fotos de la muestra cortada (opcional):
+            <div className="pt-2 text-[11px] text-slate-400 border-t border-slate-100 flex items-center justify-center gap-1.5">
+              <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+              <span>Auditando muestra: <strong className="text-slate-700">{loteBatea}</strong></span>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* =========================================================================
+          MENSAJE PERSONALIZADO DE AGRADECIMIENTO TRAS EL ANÁLISIS
+          ========================================================================= */}
+      {showThankYou && (
+        <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-md text-center space-y-6 animate-slide-down">
+          <div className="w-20 h-20 mx-auto rounded-3xl bg-emerald-50 border-2 border-emerald-200 flex items-center justify-center text-emerald-600 shadow-inner">
+            <CheckCircle2 className="w-10 h-10 stroke-[2.5]" />
+          </div>
+
+          <div>
+            <span className="text-[10px] font-black uppercase tracking-wider text-emerald-600 bg-emerald-50 px-3 py-1 rounded-full border border-emerald-200">
+              Evaluación Registrada con Éxito
+            </span>
+            <h2 className="text-xl sm:text-2xl font-black text-slate-900 mt-3">
+              ¡Muchas gracias, {evaluador}!
+            </h2>
+            <p className="text-xs sm:text-sm text-slate-600 mt-2 leading-relaxed max-w-md mx-auto">
+              Tu evaluación sensorial ha sido analizada e incorporada al sistema de Control de Calidad de Mi Gusto bajo el protocolo oficial <strong className="text-slate-900">INF-D003</strong>.
+            </p>
+          </div>
+
+          {/* Resumen de la evaluación */}
+          <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 text-left space-y-2.5 text-xs">
+            <div className="flex items-center justify-between pb-2 border-b border-slate-200">
+              <span className="text-slate-500">Gusto evaluado:</span>
+              <span className="font-bold text-slate-900">{gusto === 'OTRO' ? otroGusto : gusto}</span>
+            </div>
+            <div className="flex items-center justify-between pb-2 border-b border-slate-200">
+              <span className="text-slate-500">Lote / Batea:</span>
+              <span className="font-mono font-bold text-slate-900">{loteBatea}</span>
+            </div>
+            <div className="flex items-center justify-between pb-2 border-b border-slate-200">
+              <span className="text-slate-500">Dictamen final:</span>
+              <span className={`font-bold px-2 py-0.5 rounded text-[11px] ${
+                g3_aprobacion === 'Sí'
+                  ? 'bg-emerald-100 text-emerald-800'
+                  : g3_aprobacion === 'Sí con observaciones'
+                  ? 'bg-amber-100 text-amber-800'
+                  : 'bg-rose-100 text-rose-800'
+              }`}>
+                {g3_aprobacion === 'Sí' ? 'Aprobado' : g3_aprobacion === 'Sí con observaciones' ? 'Aprobado c/ Obs.' : 'Rechazado'}
               </span>
-              <div className="flex flex-wrap items-center gap-2.5">
-                <label className="flex flex-col items-center justify-center w-20 h-20 rounded-xl border-2 border-dashed border-slate-300 hover:border-[#3b68ff] bg-slate-50 hover:bg-slate-100 text-[#3b68ff] cursor-pointer active:scale-95 transition-all shadow-sm">
-                  <Camera className="w-5 h-5 mb-1 text-[#3b68ff]" />
-                  <span className="text-[9.5px] font-bold">Subir</span>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    multiple
-                    onChange={handlePhotoUpload}
-                    className="hidden"
-                  />
-                </label>
-
-                {photos.map((src, idx) => (
-                  <div key={idx} className="relative w-20 h-20 rounded-xl overflow-hidden group border border-slate-200 shadow-sm">
-                    <img src={src} alt={`Evidencia ${idx}`} className="w-full h-full object-cover" />
-                    <button
-                      type="button"
-                      onClick={() => removePhoto(idx)}
-                      className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex items-center justify-center text-rose-400 transition-opacity"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                  </div>
-                ))}
-              </div>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-slate-500">Puntaje global:</span>
+              <span className="font-bold text-amber-600 flex items-center gap-1">
+                {g2_gustoGeneral} de 5 <Star className="w-3.5 h-3.5 fill-amber-500 text-amber-500" />
+              </span>
             </div>
           </div>
 
-          {/* Botón flotante inferior fijo */}
-          <div className="fixed bottom-0 left-0 right-0 p-3 bg-white/95 backdrop-blur-md border-t border-slate-200 z-30 shadow-lg">
-            <div className="max-w-xl mx-auto">
-              <button
-                type="submit"
-                disabled={saving}
-                className="w-full py-3.5 px-4 rounded-xl bg-[#3b68ff] hover:bg-[#2563eb] text-white font-extrabold text-xs tracking-wider uppercase shadow-md shadow-[#3b68ff]/25 active:scale-[0.98] transition-all flex items-center justify-center gap-2 disabled:opacity-50"
-              >
-                {saving ? (
-                  <span className="animate-pulse">Guardando Evaluación INF-D003...</span>
-                ) : (
-                  <>
-                    <Save className="w-4 h-4" />
-                    <span>Guardar Evaluación Sensorial (INF-D003)</span>
-                  </>
-                )}
-              </button>
-            </div>
-          </div>
-        </form>
+          <button
+            type="button"
+            onClick={handleResetForNewEvaluation}
+            className="w-full py-4 px-6 rounded-2xl bg-[#3b68ff] hover:bg-[#2563eb] text-white font-extrabold text-xs uppercase tracking-wider shadow-md shadow-[#3b68ff]/25 active:scale-[0.98] transition-all flex items-center justify-center gap-2"
+          >
+            <RotateCcw className="w-4 h-4" />
+            <span>Realizar Nueva Evaluación</span>
+          </button>
+        </div>
       )}
       </div>
 
