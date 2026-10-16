@@ -49,16 +49,26 @@ export function App() {
         <div className="max-w-xl mx-auto flex items-center justify-between">
           <div
             onClick={() => setView('form')}
-            className="flex items-center gap-2.5 cursor-pointer active:scale-95 transition-transform"
+            className="flex items-center gap-3 cursor-pointer group active:scale-[0.98] transition-all"
           >
-            <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-qc-700 via-qc-500 to-blue-400 flex items-center justify-center font-black text-white text-xs shadow-md shadow-qc-600/30">
-              QC
+            <div className="relative flex items-center">
+              <img
+                src="/logo-script.png"
+                alt="Mi Gusto"
+                className="h-8 sm:h-9 w-auto max-w-[130px] object-contain drop-shadow-[0_2px_12px_rgba(56,165,248,0.25)] transition-transform group-hover:scale-105"
+              />
             </div>
-            <div>
-              <span className="font-extrabold text-xs tracking-tight text-white block leading-none">
-                MI GUSTO
-              </span>
-              <span className="text-[9px] uppercase font-bold tracking-widest text-qc-400 leading-none">
+            <div className="h-6 w-px bg-slate-800/80 hidden xs:block" />
+            <div className="flex flex-col justify-center">
+              <div className="flex items-center gap-1.5">
+                <span className="font-extrabold text-xs tracking-tight text-white block leading-none">
+                  SENSORIAL
+                </span>
+                <span className="text-[8.5px] font-bold px-1.5 py-0.5 rounded-full bg-qc-500/20 border border-qc-400/30 text-qc-300 uppercase tracking-wide">
+                  Cata
+                </span>
+              </div>
+              <span className="text-[9px] uppercase font-semibold tracking-wider text-slate-400 leading-none mt-1">
                 Calidad & Desarrollo
               </span>
             </div>
@@ -68,7 +78,7 @@ export function App() {
             {view === 'form' ? (
               <button
                 onClick={handleOpenAdmin}
-                className="text-[11px] font-bold px-2.5 py-1.5 rounded-lg border border-qc-500/30 text-qc-300 hover:text-white bg-qc-950/60 active:scale-95 transition-all flex items-center gap-1.5"
+                className="text-[11px] font-bold px-3 py-1.5 rounded-xl border border-qc-500/30 text-qc-200 hover:text-white bg-gradient-to-b from-qc-900/60 to-qc-950/80 hover:border-qc-400/50 hover:shadow-lg hover:shadow-qc-600/20 active:scale-95 transition-all flex items-center gap-1.5 backdrop-blur-sm"
               >
                 <Database className="w-3.5 h-3.5 text-qc-400" />
                 <span>{currentUser ? 'Historial' : 'Admin'}</span>
@@ -76,10 +86,10 @@ export function App() {
             ) : (
               <button
                 onClick={() => setView('form')}
-                className="text-[11px] font-bold px-2.5 py-1.5 rounded-lg border border-qc-500/30 text-qc-300 hover:text-white bg-qc-950/60 active:scale-95 transition-all flex items-center gap-1.5"
+                className="text-[11px] font-bold px-3 py-1.5 rounded-xl border border-qc-500/30 text-qc-200 hover:text-white bg-gradient-to-b from-qc-900/60 to-qc-950/80 hover:border-qc-400/50 hover:shadow-lg hover:shadow-qc-600/20 active:scale-95 transition-all flex items-center gap-1.5 backdrop-blur-sm"
               >
                 <QrCode className="w-3.5 h-3.5 text-qc-400" />
-                <span>Cata QR</span>
+                <span>Cata Sensorial</span>
               </button>
             )}
           </div>
