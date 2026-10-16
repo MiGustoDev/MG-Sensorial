@@ -46,7 +46,7 @@ export function App() {
           >
             <div className="relative flex items-center">
               <img
-                src="/logo-script.png"
+                src={`${import.meta.env.BASE_URL}logo-script.png`}
                 alt="Mi Gusto"
                 className="h-8 sm:h-9 w-auto max-w-[130px] object-contain brightness-0 invert drop-shadow-sm transition-transform group-hover:scale-105"
               />

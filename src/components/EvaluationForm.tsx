@@ -2,7 +2,6 @@ import { useState, useRef, useEffect } from 'react';
 import type { SensorialFormAnswers } from '../types';
 import { EMPANADAS_GUSTOS } from '../types';
 import { supabase } from '../lib/supabase';
-import confetti from 'canvas-confetti';
 import {
   CheckCircle2,
   AlertTriangle,
@@ -13,8 +12,6 @@ import {
   Wind,
   Smile,
   Award,
-  RotateCcw,
-  Sparkles,
   ArrowRight,
   ClipboardList,
   User,
@@ -22,7 +19,6 @@ import {
   Tag,
   Clock,
   Calendar,
-  Edit3,
   Check,
   Star,
   ChevronDown,
@@ -33,10 +29,10 @@ import {
 
 interface EvaluationFormProps {
   onSavedSuccess?: () => void;
-  onOpenAdmin: () => void;
+  onOpenAdmin?: () => void;
 }
 
-export const EvaluationForm: React.FC<EvaluationFormProps> = ({ onSavedSuccess, onOpenAdmin }) => {
+export const EvaluationForm: React.FC<EvaluationFormProps> = ({ onSavedSuccess }) => {
   // Estado de despliegue del flujo en 2 pasos
   const [isEvaluationUnlocked, setIsEvaluationUnlocked] = useState(false);
   const [isEditingSample, setIsEditingSample] = useState(false);
@@ -140,7 +136,7 @@ export const EvaluationForm: React.FC<EvaluationFormProps> = ({ onSavedSuccess, 
 
   // 4. EVALUACIÓN GLOBAL
   const [g1_estandarGusto, setG1_estandarGusto] = useState<'Igual' | 'Leve diferencia' | 'Muy diferente' | ''>('Igual');
-  const [g2_gustoGeneral, setG2_gustoGeneral] = useState<number>(5);
+  const [g2_gustoGeneral, setG2_gustoGeneral] = useState<number>(1);
   const [g3_aprobacion, setG3_aprobacion] = useState<'Sí' | 'Sí con observaciones' | 'No' | ''>('Sí');
   const [obs_global, setObs_global] = useState('');
 
@@ -293,25 +289,6 @@ export const EvaluationForm: React.FC<EvaluationFormProps> = ({ onSavedSuccess, 
     }, 100);
   };
 
-  const handleResetForNewEvaluation = () => {
-    setShowThankYou(false);
-    setIsAnalyzing(false);
-    setSuccessSaved(false);
-    setIsEvaluationUnlocked(false);
-    setIsEditingSample(false);
-    setCurrentModule(0);
-    setCurrentQuestion(0);
-    setLoteBatea('');
-    setCodigoMuestra('');
-    setPhotos([]);
-    clearSignature();
-    setObs_vista('');
-    setObs_olfato('');
-    setObs_boca('');
-    setObs_global('');
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
-
   const handleSubmit = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     setErrorMessage(null);
@@ -460,12 +437,6 @@ export const EvaluationForm: React.FC<EvaluationFormProps> = ({ onSavedSuccess, 
         setSuccessSaved(true);
         if (onSavedSuccess) onSavedSuccess();
 
-        confetti({
-          particleCount: 110,
-          spread: 80,
-          origin: { y: 0.6 },
-          colors: ['#4f46e5', '#4338ca', '#eb5757', '#d97706', '#10b981', '#f5f0e6']
-        });
         window.scrollTo({ top: 0, behavior: 'smooth' });
       }
     }, 50);
@@ -717,21 +688,6 @@ export const EvaluationForm: React.FC<EvaluationFormProps> = ({ onSavedSuccess, 
                 La muestra de <span className="font-bold text-emerald-950">{gusto === 'OTRO' ? otroGusto : gusto}</span> ({loteBatea}) fue guardada en el historial oficial de Calidad.
               </p>
             </div>
-          </div>
-          <div className="flex items-center gap-2 pt-1 border-t border-emerald-200/60">
-            <button
-              onClick={handleResetForNewEvaluation}
-              className="text-xs font-bold px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white active:scale-95 transition-all flex items-center gap-1.5 shadow-sm"
-            >
-              <Sparkles className="w-3.5 h-3.5" />
-              <span>Evaluar Otra Muestra</span>
-            </button>
-            <button
-              onClick={onOpenAdmin}
-              className="text-xs font-bold px-3.5 py-2 rounded-xl bg-white hover:bg-emerald-100 text-emerald-800 border border-emerald-300 active:scale-95 transition-all"
-            >
-              Ver en Historial
-            </button>
           </div>
         </div>
       )}
@@ -1182,11 +1138,11 @@ export const EvaluationForm: React.FC<EvaluationFormProps> = ({ onSavedSuccess, 
           ========================================================================= */}
       {isEvaluationUnlocked && !showThankYou && (
         <div id="resumen-muestra-activa" className="mb-4 p-3.5 rounded-2xl bg-[#fdfbf7] border border-[#e2d9c8] shadow-sm animate-fade-in scroll-mt-20">
-          <div className="flex items-center justify-between gap-2 pb-2 border-b border-[#e2d9c8]">
+          <div className="flex items-center gap-2 pb-2 border-b border-[#e2d9c8]">
             <div className="flex items-center gap-1.5 flex-wrap">
               <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shrink-0" />
               <span className="text-[10px] font-black uppercase tracking-wider text-[#7c746d]">Muestra Activa</span>
-              <span className="text-xs font-mono font-bold px-2 py-0.5 rounded-md bg-[#eeedfc] text-[#4f46e5] border border-[#d7d4f9]">
+              <span className="text-xs font-mono font-black px-2.5 py-0.5 rounded-md bg-[#5969E6] text-white shadow-sm">
                 Lote: {loteBatea}
               </span>
               {codigoMuestra && (
@@ -1195,15 +1151,6 @@ export const EvaluationForm: React.FC<EvaluationFormProps> = ({ onSavedSuccess, 
                 </span>
               )}
             </div>
-
-            <button
-              type="button"
-              onClick={() => setIsEditingSample(prev => !prev)}
-              className="text-[11px] font-bold text-[#4f46e5] hover:text-[#4338ca] px-2.5 py-1 rounded-lg bg-[#eeedfc] hover:bg-[#e0defa] border border-[#d7d4f9] flex items-center gap-1 active:scale-95 transition-all shrink-0"
-            >
-              <Edit3 className="w-3 h-3 text-[#4f46e5]" />
-              <span>{isEditingSample ? 'Cerrar' : 'Modificar'}</span>
-            </button>
           </div>
 
           <div className="pt-2 flex flex-col sm:flex-row sm:items-center justify-between gap-1">
@@ -1697,25 +1644,25 @@ export const EvaluationForm: React.FC<EvaluationFormProps> = ({ onSavedSuccess, 
                   type="button"
                   onClick={handleSubmit}
                   disabled={saving || isAnalyzing}
-                  className="flex-1 py-3 px-4 rounded-xl bg-[#4f46e5] hover:bg-[#4338ca] text-white font-extrabold text-xs tracking-wider uppercase shadow-md shadow-[#4f46e5]/25 active:scale-[0.98] transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+                  className="w-auto py-2.5 px-5 rounded-xl bg-[#4f46e5] hover:bg-[#4338ca] text-white font-extrabold text-xs tracking-wider uppercase shadow-md shadow-[#4f46e5]/25 active:scale-[0.98] transition-all inline-flex items-center justify-center gap-2 disabled:opacity-50"
                 >
                   <Save className="w-4 h-4" />
-                  <span>Guardar Evaluación Sensorial (INF-D003)</span>
+                  <span>Guardar Evaluación (INF-D003)</span>
                 </button>
               ) : currentQuestion === MODULES[currentModule].totalQuestions - 1 ? (
                 <button
                   type="button"
                   onClick={handleNextStep}
-                  className="flex-1 py-3 px-4 rounded-xl bg-[#4f46e5] hover:bg-[#4338ca] text-white font-extrabold text-xs tracking-wider uppercase shadow-md shadow-[#4f46e5]/25 active:scale-[0.98] transition-all flex items-center justify-center gap-2 group"
+                  className="w-auto py-2.5 px-5 rounded-xl bg-[#4f46e5] hover:bg-[#4338ca] text-white font-extrabold text-xs tracking-wider uppercase shadow-md shadow-[#4f46e5]/25 active:scale-[0.98] transition-all inline-flex items-center justify-center gap-2 group"
                 >
-                  <span>Siguiente Módulo: {MODULES[currentModule + 1].name}</span>
+                  <span>Módulo {MODULES[currentModule + 1].name}</span>
                   <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
                 </button>
               ) : (
                 <button
                   type="button"
                   onClick={handleNextStep}
-                  className="flex-1 py-3 px-4 rounded-xl bg-[#4f46e5] hover:bg-[#4338ca] text-white font-extrabold text-xs tracking-wider uppercase shadow-md shadow-[#4f46e5]/25 active:scale-[0.98] transition-all flex items-center justify-center gap-2 group"
+                  className="w-auto py-2.5 px-5 rounded-xl bg-[#4f46e5] hover:bg-[#4338ca] text-white font-extrabold text-xs tracking-wider uppercase shadow-md shadow-[#4f46e5]/25 active:scale-[0.98] transition-all inline-flex items-center justify-center gap-2 group"
                 >
                   <span>Siguiente</span>
                   <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
@@ -1732,16 +1679,26 @@ export const EvaluationForm: React.FC<EvaluationFormProps> = ({ onSavedSuccess, 
       {isAnalyzing && (
         <div className="fixed inset-0 z-50 bg-[#1c1815]/80 backdrop-blur-md flex items-center justify-center p-4 animate-fade-in">
           <div className="bg-[#fdfbf7] rounded-3xl p-6 sm:p-8 max-w-md w-full border border-[#e2d9c8] shadow-2xl text-center space-y-6">
-            <div className="relative w-24 h-24 mx-auto flex items-center justify-center">
-              <div className="absolute inset-0 rounded-full bg-[#eeedfc] animate-ping opacity-60" />
-              <div className="absolute inset-2 rounded-full bg-[#f5f0e6] border-2 border-[#4f46e5]/30 animate-pulse" />
-              <div className="relative w-16 h-16 rounded-2xl bg-[#4f46e5] text-white flex items-center justify-center shadow-lg shadow-[#4f46e5]/30">
-                <Sparkles className="w-8 h-8 animate-spin" style={{ animationDuration: '3s' }} />
+            <div className="relative w-28 h-28 mx-auto flex items-center justify-center">
+              {/* Pulso exterior Rojo Coral */}
+              <div className="absolute inset-0 rounded-full bg-[#FC7572]/20 animate-ping opacity-60" />
+              {/* Aro giratorio tricolor: Rojo Coral (#FC7572) y Azul Violáceo (#5969E6) sobre Beige (#ebdccb) */}
+              <div
+                className="absolute inset-1 rounded-full border-[3.5px] border-transparent border-t-[#FC7572] border-r-[#5969E6] border-b-[#ebdccb] animate-spin"
+                style={{ animationDuration: '1.8s' }}
+              />
+              {/* Círculo central en Beige Pastel con el logo de Mi Gusto */}
+              <div className="relative w-20 h-20 rounded-full bg-[#ebdccb] border-2 border-[#e2d9c8] shadow-inner flex items-center justify-center p-3">
+                <img
+                  src={`${import.meta.env.BASE_URL}logo-script.png`}
+                  alt="Mi Gusto"
+                  className="w-full h-auto object-contain brightness-0 drop-shadow-sm"
+                />
               </div>
             </div>
 
             <div>
-              <span className="text-[10px] font-black uppercase tracking-widest text-[#4f46e5] bg-[#eeedfc] px-3 py-1 rounded-full border border-[#d7d4f9]">
+              <span className="text-[10px] font-black uppercase tracking-widest text-[#5969E6] bg-[#eeedfc] px-3 py-1 rounded-full border border-[#d7d4f9]">
                 Control de Calidad Mi Gusto
               </span>
               <h3 className="text-lg sm:text-xl font-black text-[#2c2724] mt-3">
@@ -1826,15 +1783,6 @@ export const EvaluationForm: React.FC<EvaluationFormProps> = ({ onSavedSuccess, 
               </span>
             </div>
           </div>
-
-          <button
-            type="button"
-            onClick={handleResetForNewEvaluation}
-            className="w-full py-4 px-6 rounded-2xl bg-[#4f46e5] hover:bg-[#4338ca] text-white font-extrabold text-xs uppercase tracking-wider shadow-md shadow-[#4f46e5]/25 active:scale-[0.98] transition-all flex items-center justify-center gap-2"
-          >
-            <RotateCcw className="w-4 h-4" />
-            <span>Realizar Nueva Evaluación</span>
-          </button>
         </div>
       )}
       </div>
