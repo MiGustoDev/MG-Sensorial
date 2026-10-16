@@ -126,6 +126,15 @@ input[type="range"]::-webkit-slider-thumb:active {
   background: #38a5f8;
 }
 
+/* Hide scrollbar utility */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
 /* Micro-animations */
 @keyframes fadeIn {
   from {

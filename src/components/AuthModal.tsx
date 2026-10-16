@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { LogIn, Lock, Mail, ShieldAlert, ShieldCheck } from 'lucide-react';
 
 interface AuthModalProps {
@@ -52,9 +53,15 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
     }, 400);
   };
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#1c1815]/75 backdrop-blur-sm animate-fade-in">
-      <div className="relative w-full max-w-sm bg-[#fdfbf7] rounded-3xl p-6 sm:p-7 shadow-2xl border border-[#e2d9c8] text-[#2c2724]">
+  return createPortal(
+    <div
+      className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-[#1c1815]/75 backdrop-blur-md animate-fade-in"
+      onClick={onClose}
+    >
+      <div
+        className="relative w-full max-w-sm bg-[#fdfbf7] rounded-3xl p-6 sm:p-7 shadow-2xl border border-[#e2d9c8] text-[#2c2724]"
+        onClick={(e) => e.stopPropagation()}
+      >
         <button
           onClick={onClose}
           className="absolute top-4 right-4 w-7 h-7 rounded-full bg-[#f5f0e6] border border-[#e2d9c8] text-[#7c746d] hover:text-[#2c2724] hover:bg-[#ede6d8] flex items-center justify-center text-xs font-bold transition-all"
@@ -142,6 +149,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
           <span>Control de Calidad • Mi Gusto</span>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };

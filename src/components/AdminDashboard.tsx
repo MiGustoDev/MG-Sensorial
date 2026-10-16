@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import type { SensorialEvaluationRecord } from '../types';
 import { supabase } from '../lib/supabase';
 import {
@@ -11,7 +12,13 @@ import {
   Trash2,
   LogOut,
   RefreshCw,
-  Eye
+  Eye,
+  BarChart3,
+  PieChart,
+  TrendingUp,
+  ChevronDown,
+  Check,
+  Star
 } from 'lucide-react';
 
 interface AdminDashboardProps {
@@ -29,7 +36,36 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterAprobacion, setFilterAprobacion] = useState<string>('ALL');
+  const [isFilterDropdownOpen, setIsFilterDropdownOpen] = useState(false);
   const [selectedEvaluation, setSelectedEvaluation] = useState<SensorialEvaluationRecord | null>(null);
+  const [selectedStats, setSelectedStats] = useState<SensorialEvaluationRecord | null>(null);
+
+  const statsContentRef = useRef<HTMLDivElement>(null);
+  const evalContentRef = useRef<HTMLDivElement>(null);
+
+  // Bloquear scroll de la página de fondo cuando cualquier modal esté abierto
+  useEffect(() => {
+    if (selectedEvaluation || selectedStats) {
+      const originalOverflow = document.body.style.overflow;
+      document.body.style.overflow = 'hidden';
+      return () => {
+        document.body.style.overflow = originalOverflow;
+      };
+    }
+  }, [selectedEvaluation, selectedStats]);
+
+  // Asegurar que al abrir el modal siempre comience desde la parte superior (top: 0)
+  useEffect(() => {
+    if (selectedStats && statsContentRef.current) {
+      statsContentRef.current.scrollTop = 0;
+    }
+  }, [selectedStats]);
+
+  useEffect(() => {
+    if (selectedEvaluation && evalContentRef.current) {
+      evalContentRef.current.scrollTop = 0;
+    }
+  }, [selectedEvaluation]);
 
   const fetchEvaluations = async () => {
     setLoading(true);
@@ -234,6 +270,88 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
       : '0.0'
   };
 
+  // Click outside para cerrar dropdown de filtro personalizado
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      if (!target.closest('#filter-dropdown-container')) {
+        setIsFilterDropdownOpen(false);
+      }
+    };
+    if (isFilterDropdownOpen) {
+      document.addEventListener('click', handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener('click', handleClickOutside);
+    };
+  }, [isFilterDropdownOpen]);
+
+  // Agrupamiento y cálculo para Top Gustos Catados
+  const gustoCounts: Record<string, { count: number; totalRating: number }> = {};
+  evaluations.forEach(ev => {
+    if (!gustoCounts[ev.gusto]) {
+      gustoCounts[ev.gusto] = { count: 0, totalRating: 0 };
+    }
+    gustoCounts[ev.gusto].count += 1;
+    gustoCounts[ev.gusto].totalRating += (ev.g2_gustoGeneral || 0);
+  });
+
+  const topGustos = Object.entries(gustoCounts)
+    .map(([gusto, data]) => ({
+      gusto,
+      count: data.count,
+      avgRating: (data.totalRating / data.count).toFixed(1)
+    }))
+    .sort((a, b) => b.count - a.count);
+
+  // Helper para calcular métricas organolépticas individuales de una muestra
+  const calculateSensoryMetrics = (ev: SensorialEvaluationRecord) => {
+    let vistaScore = 100;
+    if (ev.v1_color !== 'Sí') vistaScore -= 20;
+    if (ev.v2_cantidad !== 'Justo') vistaScore -= 15;
+    if (ev.v3_mezclado !== 'Parejo') vistaScore -= 15;
+    if (ev.v4_ingredientesReceta !== 'Sí') vistaScore -= 20;
+    if (ev.v5_ingredienteExtrano !== 'No') vistaScore -= 30;
+    if (ev.v6_selladoCarne !== 'Dorada y jugosa' && ev.v6_selladoCarne !== 'N/A') vistaScore -= 15;
+    if (ev.v7_rehogadoVegetales !== 'Justo' && ev.v7_rehogadoVegetales !== 'N/A') vistaScore -= 10;
+    if (ev.v8_caramelizacion !== 'Justa' && ev.v8_caramelizacion !== 'N/A') vistaScore -= 10;
+    vistaScore = Math.max(15, Math.min(100, vistaScore));
+
+    let olfatoScore = 100;
+    if (ev.o1_intensidadAroma !== 'Justa') olfatoScore -= 20;
+    if (ev.o2_aromaCaracteristico !== 'Sí') olfatoScore -= 30;
+    const oloresExtranos = (ev.o3_olorExtrano || []).filter(o => o !== 'No');
+    if (oloresExtranos.length > 0) olfatoScore -= 40;
+    olfatoScore = Math.max(15, Math.min(100, olfatoScore));
+
+    let bocaScore = 100;
+    if (ev.b2_texturaMasa !== 'Tierna') bocaScore -= 20;
+    if (ev.b3_jugosidadRelleno !== 'Jugoso') bocaScore -= 20;
+    if (ev.b4_texturaCarne !== 'Tierna' && ev.b4_texturaCarne !== 'N/A') bocaScore -= 15;
+    if (ev.b5_sal !== 'Justa') bocaScore -= 15;
+    if (ev.b8_saborCaracteristico !== 'Justo') bocaScore -= 20;
+    const saboresExtranos = (ev.b10_saborExtrano || []).filter(s => s !== 'No');
+    if (saboresExtranos.length > 0) bocaScore -= 35;
+    if (ev.b11_retrogusto !== 'Agradable') bocaScore -= 15;
+    bocaScore = Math.max(15, Math.min(100, bocaScore));
+
+    let globalScore = Math.round((ev.g2_gustoGeneral / 5) * 100);
+    if (ev.g3_aprobacion === 'Sí con observaciones') globalScore = Math.min(globalScore, 75);
+    if (ev.g3_aprobacion === 'No') globalScore = Math.min(globalScore, 40);
+
+    const totalIndex = Math.round((vistaScore * 0.25) + (olfatoScore * 0.20) + (bocaScore * 0.35) + (globalScore * 0.20));
+
+    return {
+      vistaScore,
+      olfatoScore,
+      bocaScore,
+      globalScore,
+      totalIndex,
+      oloresExtranos,
+      saboresExtranos
+    };
+  };
+
   return (
     <div className="w-full max-w-xl sm:max-w-3xl md:max-w-5xl lg:max-w-6xl xl:max-w-7xl mx-auto px-3.5 sm:px-6 lg:px-8 py-5 sm:py-8 pb-24 animate-fade-in">
       {/* Header Admin */}
@@ -313,7 +431,198 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
         </div>
       </div>
 
-      {/* Buscador & Filtro */}
+      {/* =========================================================================
+          PANEL ANALÍTICO: GRÁFICOS GENERALES DEL HISTORIAL DE CATAS
+          ========================================================================= */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5 mb-6">
+        {/* Gráfico 1: Dictámenes de Aprobación (Donut SVG) */}
+        <div className="bg-[#fdfbf7] p-4 sm:p-5 rounded-3xl border border-[#ded4c3] shadow-xs flex flex-col justify-between">
+          <div className="flex items-center justify-between pb-3 border-b border-[#ded4c3]">
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 rounded-xl bg-emerald-100 text-emerald-800 flex items-center justify-center">
+                <PieChart className="w-4 h-4" />
+              </div>
+              <div>
+                <h3 className="text-xs sm:text-sm font-black text-[#2c2724]">Dictámenes Globales</h3>
+                <p className="text-[10px] text-[#7c746d]">Distribución de aprobación INF-D003</p>
+              </div>
+            </div>
+            <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-[#f5f0e6] text-[#7c746d] border border-[#e2d9c8]">
+              {stats.total} catas
+            </span>
+          </div>
+
+          <div className="py-4 flex items-center justify-around gap-4">
+            {/* SVG Donut */}
+            <div className="relative w-28 h-28 flex items-center justify-center shrink-0">
+              <svg className="w-full h-full -rotate-90" viewBox="0 0 36 36">
+                <circle cx="18" cy="18" r="14" fill="none" stroke="#ede6d8" strokeWidth="4" />
+                {stats.total > 0 && stats.aprobados > 0 && (
+                  <circle
+                    cx="18"
+                    cy="18"
+                    r="14"
+                    fill="none"
+                    stroke="#10b981"
+                    strokeWidth="4"
+                    strokeDasharray={`${(stats.aprobados / stats.total) * 88} 88`}
+                    strokeDashoffset="0"
+                    strokeLinecap="round"
+                    className="transition-all duration-700 ease-out"
+                  />
+                )}
+                {stats.total > 0 && stats.observados > 0 && (
+                  <circle
+                    cx="18"
+                    cy="18"
+                    r="14"
+                    fill="none"
+                    stroke="#f59e0b"
+                    strokeWidth="4"
+                    strokeDasharray={`${(stats.observados / stats.total) * 88} 88`}
+                    strokeDashoffset={`-${(stats.aprobados / stats.total) * 88}`}
+                    strokeLinecap="round"
+                    className="transition-all duration-700 ease-out"
+                  />
+                )}
+                {stats.total > 0 && stats.rechazados > 0 && (
+                  <circle
+                    cx="18"
+                    cy="18"
+                    r="14"
+                    fill="none"
+                    stroke="#ef4444"
+                    strokeWidth="4"
+                    strokeDasharray={`${(stats.rechazados / stats.total) * 88} 88`}
+                    strokeDashoffset={`-${((stats.aprobados + stats.observados) / stats.total) * 88}`}
+                    strokeLinecap="round"
+                    className="transition-all duration-700 ease-out"
+                  />
+                )}
+              </svg>
+              <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
+                <span className="text-base font-black text-[#2c2724] leading-none">
+                  {stats.total ? Math.round((stats.aprobados / stats.total) * 100) : 0}%
+                </span>
+                <span className="text-[9px] font-bold text-[#7c746d] uppercase mt-0.5">Aprobado</span>
+              </div>
+            </div>
+
+            {/* Leyenda */}
+            <div className="space-y-1.5 flex-1 min-w-0 text-xs">
+              <div className="flex items-center justify-between text-[11px]">
+                <div className="flex items-center gap-1.5 truncate">
+                  <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 shrink-0" />
+                  <span className="text-[#4a423b] truncate">Aprobadas</span>
+                </div>
+                <span className="font-bold text-[#2c2724]">{stats.aprobados} ({stats.total ? Math.round((stats.aprobados / stats.total) * 100) : 0}%)</span>
+              </div>
+              <div className="flex items-center justify-between text-[11px]">
+                <div className="flex items-center gap-1.5 truncate">
+                  <div className="w-2.5 h-2.5 rounded-full bg-amber-500 shrink-0" />
+                  <span className="text-[#4a423b] truncate">C/ Observación</span>
+                </div>
+                <span className="font-bold text-[#2c2724]">{stats.observados} ({stats.total ? Math.round((stats.observados / stats.total) * 100) : 0}%)</span>
+              </div>
+              <div className="flex items-center justify-between text-[11px]">
+                <div className="flex items-center gap-1.5 truncate">
+                  <div className="w-2.5 h-2.5 rounded-full bg-rose-500 shrink-0" />
+                  <span className="text-[#4a423b] truncate">Rechazadas</span>
+                </div>
+                <span className="font-bold text-[#2c2724]">{stats.rechazados} ({stats.total ? Math.round((stats.rechazados / stats.total) * 100) : 0}%)</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Gráfico 2: Distribución de Calificación General (Estrellas 1 a 5) */}
+        <div className="bg-[#fdfbf7] p-4 sm:p-5 rounded-3xl border border-[#ded4c3] shadow-xs flex flex-col justify-between">
+          <div className="flex items-center justify-between pb-3 border-b border-[#ded4c3]">
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 rounded-xl bg-amber-100 text-amber-800 flex items-center justify-center">
+                <Star className="w-4 h-4 fill-amber-500 text-amber-500" />
+              </div>
+              <div>
+                <h3 className="text-xs sm:text-sm font-black text-[#2c2724]">Puntaje Organoléptico</h3>
+                <p className="text-[10px] text-[#7c746d]">Escala de 1 a 5 estrellas</p>
+              </div>
+            </div>
+            <span className="text-xs font-mono font-black text-amber-600 bg-amber-50 px-2.5 py-0.5 rounded-full border border-amber-200">
+              {stats.promedioGusto} ★ prom.
+            </span>
+          </div>
+
+          <div className="py-2.5 space-y-2 text-xs">
+            {[5, 4, 3, 2, 1].map(stars => {
+              const count = evaluations.filter(e => e.g2_gustoGeneral === stars).length;
+              const pct = stats.total ? Math.round((count / stats.total) * 100) : 0;
+              return (
+                <div key={stars} className="flex items-center gap-2 text-[11px]">
+                  <span className="w-7 font-black text-[#4a423b] flex items-center gap-0.5">
+                    {stars} <Star className="w-2.5 h-2.5 fill-amber-500 text-amber-500" />
+                  </span>
+                  <div className="flex-1 h-3 rounded-full bg-[#ede6d8] overflow-hidden">
+                    <div
+                      className={`h-full rounded-full transition-all duration-700 ${
+                        stars >= 4 ? 'bg-[#5969E6]' : stars === 3 ? 'bg-amber-500' : 'bg-rose-400'
+                      }`}
+                      style={{ width: `${pct}%` }}
+                    />
+                  </div>
+                  <span className="w-12 text-right font-mono font-bold text-[#7c746d]">
+                    {count} <span className="text-[9px] font-normal text-[#a69d91]">({pct}%)</span>
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Gráfico 3: Top Gustos Evaluados y Calidad Media */}
+        <div className="bg-[#fdfbf7] p-4 sm:p-5 rounded-3xl border border-[#ded4c3] shadow-xs flex flex-col justify-between md:col-span-2 lg:col-span-1">
+          <div className="flex items-center justify-between pb-3 border-b border-[#ded4c3]">
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 rounded-xl bg-[#eeedfc] text-[#4f46e5] flex items-center justify-center">
+                <TrendingUp className="w-4 h-4" />
+              </div>
+              <div>
+                <h3 className="text-xs sm:text-sm font-black text-[#2c2724]">Top Gustos Catados</h3>
+                <p className="text-[10px] text-[#7c746d]">Muestras por variedad y aceptación</p>
+              </div>
+            </div>
+            <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-[#eeedfc] text-[#5969E6] border border-[#d7d4f9]">
+              Ranking
+            </span>
+          </div>
+
+          <div className="py-2.5 space-y-2 text-xs">
+            {topGustos.length === 0 ? (
+              <p className="text-[#7c746d] text-center py-6 text-xs">Sin registros de gustos aún</p>
+            ) : (
+              topGustos.slice(0, 4).map((g, idx) => (
+                <div key={g.gusto} className="flex items-center justify-between gap-2 text-[11px]">
+                  <div className="flex items-center gap-1.5 min-w-0 flex-1">
+                    <span className="w-4 h-4 rounded-md bg-[#f5f0e6] text-[#7c746d] font-black text-[9px] flex items-center justify-center border border-[#ded4c3] shrink-0">
+                      {idx + 1}
+                    </span>
+                    <span className="font-bold text-[#2c2724] truncate">{g.gusto}</span>
+                  </div>
+                  <div className="flex items-center gap-2 shrink-0">
+                    <span className="font-mono text-[10px] text-[#7c746d] bg-[#f5f0e6] px-1.5 py-0.5 rounded border border-[#ded4c3]">
+                      {g.count} cata{g.count > 1 ? 's' : ''}
+                    </span>
+                    <span className="font-mono font-black text-amber-600 flex items-center gap-0.5">
+                      {g.avgRating} <Star className="w-2.5 h-2.5 fill-amber-500 text-amber-500" />
+                    </span>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Buscador & Filtro con Estilos Personalizados */}
       <div className="flex flex-col sm:flex-row gap-2.5 sm:gap-3 mb-6">
         <div className="relative flex-1">
           <Search className="w-4 h-4 text-[#7c746d] absolute left-3.5 top-1/2 -translate-y-1/2" />
@@ -326,16 +635,75 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
           />
         </div>
 
-        <select
-          value={filterAprobacion}
-          onChange={e => setFilterAprobacion(e.target.value)}
-          className="w-full sm:w-auto px-4 py-2.5 sm:py-3 rounded-2xl bg-[#fdfbf7] border border-[#ded4c3] text-xs sm:text-sm font-bold text-[#2c2724] shadow-xs focus:bg-white focus:border-[#5969E6] focus:ring-2 focus:ring-[#5969E6]/20 transition-all outline-none cursor-pointer"
-        >
-          <option value="ALL">Todas las aprobaciones</option>
-          <option value="Sí">Aprobados (Sí)</option>
-          <option value="Sí con observaciones">Con observaciones</option>
-          <option value="No">Rechazados (No)</option>
-        </select>
+        {/* Filtro Desplegable con Estilos Personalizados */}
+        <div id="filter-dropdown-container" className="relative w-full sm:w-auto">
+          <button
+            type="button"
+            onClick={() => setIsFilterDropdownOpen(prev => !prev)}
+            className="w-full sm:w-64 px-4 py-2.5 sm:py-3 rounded-2xl bg-[#fdfbf7] border border-[#ded4c3] text-xs sm:text-sm font-bold text-[#2c2724] shadow-xs hover:border-[#5969E6] focus:border-[#5969E6] focus:ring-2 focus:ring-[#5969E6]/20 transition-all flex items-center justify-between gap-2 cursor-pointer"
+          >
+            <div className="flex items-center gap-2 truncate">
+              <span className={`w-2.5 h-2.5 rounded-full shrink-0 ${
+                filterAprobacion === 'Sí'
+                  ? 'bg-emerald-500'
+                  : filterAprobacion === 'Sí con observaciones'
+                  ? 'bg-amber-500'
+                  : filterAprobacion === 'No'
+                  ? 'bg-rose-500'
+                  : 'bg-[#5969E6]'
+              }`} />
+              <span className="truncate">
+                {filterAprobacion === 'ALL'
+                  ? 'Todas las aprobaciones'
+                  : filterAprobacion === 'Sí'
+                  ? 'Aprobados (Sí)'
+                  : filterAprobacion === 'Sí con observaciones'
+                  ? 'Con observaciones'
+                  : 'Rechazados (No)'}
+              </span>
+            </div>
+            <ChevronDown className={`w-4 h-4 text-[#7c746d] shrink-0 transition-transform duration-200 ${isFilterDropdownOpen ? 'rotate-180 text-[#5969E6]' : ''}`} />
+          </button>
+
+          {isFilterDropdownOpen && (
+            <div className="absolute right-0 top-full mt-1.5 w-full sm:w-64 bg-[#fdfbf7] rounded-2xl border border-[#ded4c3] shadow-xl p-1.5 z-30 animate-fade-in space-y-1">
+              {[
+                { value: 'ALL', label: 'Todas las aprobaciones', color: 'bg-[#5969E6]', badge: `${stats.total}` },
+                { value: 'Sí', label: 'Aprobados (Sí)', color: 'bg-emerald-500', badge: `${stats.aprobados}` },
+                { value: 'Sí con observaciones', label: 'Con observaciones', color: 'bg-amber-500', badge: `${stats.observados}` },
+                { value: 'No', label: 'Rechazados (No)', color: 'bg-rose-500', badge: `${stats.rechazados}` }
+              ].map(opt => {
+                const isSelected = filterAprobacion === opt.value;
+                return (
+                  <button
+                    key={opt.value}
+                    type="button"
+                    onClick={() => {
+                      setFilterAprobacion(opt.value);
+                      setIsFilterDropdownOpen(false);
+                    }}
+                    className={`w-full px-3 py-2 rounded-xl text-left text-xs sm:text-sm font-bold transition-all flex items-center justify-between gap-2 ${
+                      isSelected
+                        ? 'bg-[#eeedfc] text-[#4f46e5]'
+                        : 'text-[#3d3630] hover:bg-[#f5f0e6]'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2 truncate">
+                      <div className={`w-2 h-2 rounded-full ${opt.color} shrink-0`} />
+                      <span className="truncate">{opt.label}</span>
+                    </div>
+                    <div className="flex items-center gap-1.5 shrink-0">
+                      <span className="text-[10px] px-1.5 py-0.5 rounded bg-white/70 border border-[#ded4c3] font-mono text-[#7c746d]">
+                        {opt.badge}
+                      </span>
+                      {isSelected && <Check className="w-3.5 h-3.5 text-[#4f46e5] stroke-[3]" />}
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Cards para Mobile (intacto en estructura, colores nítidos) */}
@@ -402,8 +770,19 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                   <span className="text-[#7c746d]">
                     Evaluador: <strong className="text-[#2c2724]">{ev.evaluador}</strong>
                   </span>
-                  <div className="flex items-center gap-1">
-                    <span className="text-xs text-[#7c746d]">Aceptación:</span>
+                  <div className="flex items-center gap-1.5">
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setSelectedStats(ev);
+                      }}
+                      className="px-2 py-1 rounded-lg bg-amber-50 border border-amber-200 text-amber-700 text-[10px] font-bold flex items-center gap-1 active:scale-95 shadow-2xs"
+                      title="Ver Estadísticas y Métricas"
+                    >
+                      <BarChart3 className="w-3.5 h-3.5" />
+                      <span>Stats</span>
+                    </button>
                     <span className="text-sm font-black text-amber-600 font-mono">{ev.g2_gustoGeneral}/5 ★</span>
                   </div>
                 </div>
@@ -497,6 +876,13 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                       <td className="py-4 px-5 text-right">
                         <div className="flex items-center justify-end gap-2">
                           <button
+                            onClick={() => setSelectedStats(ev)}
+                            title="Estadísticas y Análisis de la Muestra"
+                            className="w-8 h-8 rounded-xl bg-amber-50 border border-amber-200 text-amber-700 hover:bg-amber-500 hover:text-white transition-all flex items-center justify-center shadow-2xs active:scale-95"
+                          >
+                            <BarChart3 className="w-4 h-4" />
+                          </button>
+                          <button
                             onClick={() => setSelectedEvaluation(ev)}
                             title="Ver Cuestionario Completo"
                             className="w-8 h-8 rounded-xl bg-[#eeedfc] border border-[#d7d4f9] text-[#4f46e5] hover:bg-[#4f46e5] hover:text-white transition-all flex items-center justify-center shadow-2xs active:scale-95"
@@ -522,30 +908,45 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
       </div>
 
       {/* Modal Cuestionario Completo INF-D003 */}
-      {selectedEvaluation && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 bg-[#1c1815]/75 backdrop-blur-sm animate-fade-in">
-          <div className="relative w-full max-w-2xl max-h-[92vh] overflow-y-auto bg-[#fdfbf7] rounded-3xl p-5 sm:p-7 shadow-2xl border border-[#ded4c3] text-[#2c2724]">
-            <button
-              onClick={() => setSelectedEvaluation(null)}
-              className="absolute top-4 right-4 w-8 h-8 rounded-full bg-[#f5f0e6] border border-[#ded4c3] text-[#7c746d] hover:text-[#2c2724] hover:bg-[#ede6d8] flex items-center justify-center text-xs font-bold transition-all"
-            >
-              ✕
-            </button>
-
-            <div className="border-b border-[#ded4c3] pb-3 mb-4">
-              <div className="flex items-center gap-2">
-                <span className="text-[10px] uppercase font-black text-[#5969E6] tracking-wider bg-[#eeedfc] px-2.5 py-0.5 rounded-full border border-[#d7d4f9]">
-                  Planilla Oficial INF-D003
-                </span>
-                <span className="text-[10px] text-[#7c746d] font-mono">• Protocolo de Calidad</span>
+      {selectedEvaluation && createPortal(
+        <div
+          className="fixed inset-0 z-[9999] flex items-center justify-center p-3 sm:p-6 bg-[#1c1815]/75 backdrop-blur-md animate-fade-in"
+          onClick={() => setSelectedEvaluation(null)}
+        >
+          <div
+            className="relative w-full max-w-2xl max-h-[90vh] sm:max-h-[85vh] flex flex-col bg-[#fdfbf7] rounded-3xl shadow-2xl border border-[#ded4c3] text-[#2c2724] overflow-hidden"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Cabecera Fija */}
+            <div className="p-5 sm:p-6 pb-3.5 border-b border-[#ded4c3] bg-[#fdfbf7] shrink-0 flex items-start justify-between gap-3">
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] uppercase font-black text-[#5969E6] tracking-wider bg-[#eeedfc] px-2.5 py-0.5 rounded-full border border-[#d7d4f9]">
+                    Planilla Oficial INF-D003
+                  </span>
+                  <span className="text-[10px] text-[#7c746d] font-mono">• Protocolo de Calidad</span>
+                </div>
+                <h3 className="text-xl font-black text-[#2c2724] mt-1.5">{selectedEvaluation.gusto}</h3>
+                <p className="text-xs text-[#7c746d] mt-0.5">
+                  Lote/Batea: <strong className="text-[#5969E6] font-mono font-black">{selectedEvaluation.loteBatea}</strong> {selectedEvaluation.codigoMuestra ? `• Muestra: ${selectedEvaluation.codigoMuestra}` : ''}
+                </p>
               </div>
-              <h3 className="text-xl font-black text-[#2c2724] mt-2">{selectedEvaluation.gusto}</h3>
-              <p className="text-xs text-[#7c746d] mt-0.5">
-                Lote/Batea: <strong className="text-[#5969E6] font-mono font-black">{selectedEvaluation.loteBatea}</strong> {selectedEvaluation.codigoMuestra ? `• Muestra: ${selectedEvaluation.codigoMuestra}` : ''}
-              </p>
+
+              <button
+                type="button"
+                onClick={() => setSelectedEvaluation(null)}
+                className="w-8 h-8 rounded-full bg-[#f5f0e6] border border-[#ded4c3] text-[#7c746d] hover:text-[#2c2724] hover:bg-[#ede6d8] flex items-center justify-center text-xs font-bold transition-all shrink-0 active:scale-95 shadow-2xs"
+                title="Cerrar cuestionario"
+              >
+                ✕
+              </button>
             </div>
 
-            <div className="space-y-3.5 text-xs">
+            {/* Contenido Scrolleable sin barra de scroll */}
+            <div
+              ref={evalContentRef}
+              className="p-5 sm:p-6 overflow-y-auto no-scrollbar space-y-3.5 text-xs flex-1"
+            >
               {/* Sección 1: Vista */}
               <div className="bg-[#f5f0e6] p-4 rounded-2xl border border-[#ded4c3] space-y-2">
                 <span className="font-black text-[#5969E6] uppercase text-[11px] block tracking-wider">1. VISTA</span>
@@ -638,18 +1039,302 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
               )}
             </div>
 
-            <div className="pt-3.5 mt-5 border-t border-[#ded4c3] text-[11px] text-[#7c746d] flex justify-between items-center">
-              <span>Evaluador: <strong className="text-[#2c2724]">{selectedEvaluation.evaluador}</strong> ({selectedEvaluation.fecha} {selectedEvaluation.hora})</span>
-              <button
-                onClick={() => handleDelete(selectedEvaluation.id)}
-                className="text-[#eb5757] hover:text-red-700 font-extrabold hover:underline"
-              >
-                Eliminar Registro
-              </button>
+            {/* Pie de modal fijo */}
+            <div className="p-4 sm:p-5 border-t border-[#ded4c3] bg-[#f5f0e6]/70 shrink-0 text-[11px] text-[#7c746d] flex justify-between items-center">
+              <span>Evaluador: <strong className="text-[#2c2724]">{selectedEvaluation.evaluador}</strong> ({selectedEvaluation.fecha} {selectedEvaluation.hora} hs)</span>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => handleDelete(selectedEvaluation.id)}
+                  className="px-3 py-1.5 rounded-lg bg-[#fdf2f2] border border-[#fecaca] text-[#eb5757] hover:bg-rose-600 hover:text-white font-extrabold text-[11px] transition-all"
+                >
+                  Eliminar
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSelectedEvaluation(null)}
+                  className="px-3.5 py-1.5 rounded-lg bg-[#f5f0e6] border border-[#ded4c3] text-[#2c2724] hover:bg-[#ede6d8] font-bold text-[11px] transition-all"
+                >
+                  Cerrar
+                </button>
+              </div>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
+
+      {/* Modal de Estadísticas y Análisis Sensorial Individual */}
+      {selectedStats && (() => {
+        const metrics = calculateSensoryMetrics(selectedStats);
+        const isOptimo = metrics.totalIndex >= 85;
+        const isObservado = metrics.totalIndex >= 70 && metrics.totalIndex < 85;
+
+        return createPortal(
+          <div
+            className="fixed inset-0 z-[9999] flex items-center justify-center p-3 sm:p-6 bg-[#1c1815]/75 backdrop-blur-md animate-fade-in"
+            onClick={() => setSelectedStats(null)}
+          >
+            <div
+              className="relative w-full max-w-2xl max-h-[90vh] sm:max-h-[85vh] flex flex-col bg-[#fdfbf7] rounded-3xl shadow-2xl border border-[#ded4c3] text-[#2c2724] overflow-hidden"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Cabecera Fija del Análisis */}
+              <div className="p-5 sm:p-6 pb-3.5 border-b border-[#ded4c3] bg-[#fdfbf7] shrink-0 flex items-start justify-between gap-3">
+                <div className="flex items-start gap-3">
+                  <div className="w-10 h-10 rounded-2xl bg-amber-100 border border-amber-200 text-amber-800 flex items-center justify-center shrink-0 mt-0.5 shadow-2xs">
+                    <BarChart3 className="w-5 h-5 stroke-[2.5]" />
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-[10px] font-black uppercase tracking-wider text-[#5969E6] bg-[#eeedfc] px-2.5 py-0.5 rounded-full border border-[#d7d4f9]">
+                        Auditoría Sensorial Individual
+                      </span>
+                      <span className="text-[10px] text-[#7c746d] font-mono">INF-D003</span>
+                    </div>
+                    <h2 className="text-xl sm:text-2xl font-black text-[#2c2724] mt-0.5 leading-tight">
+                      {selectedStats.gusto}
+                    </h2>
+                    <div className="flex flex-wrap items-center gap-2 text-xs text-[#7c746d] mt-1">
+                      <span>Lote / Batea: <strong className="font-mono text-[#5969E6] font-bold">{selectedStats.loteBatea}</strong></span>
+                      <span>•</span>
+                      <span>Evaluador: <strong className="text-[#2c2724] font-bold">{selectedStats.evaluador}</strong></span>
+                      <span>•</span>
+                      <span>{selectedStats.fecha} {selectedStats.hora} hs</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Botón cerrar fijo en la cabecera */}
+                <button
+                  type="button"
+                  onClick={() => setSelectedStats(null)}
+                  className="w-8 h-8 rounded-full bg-[#f5f0e6] border border-[#ded4c3] text-[#7c746d] hover:text-[#2c2724] hover:bg-[#ede6d8] flex items-center justify-center text-xs font-bold transition-all shrink-0 active:scale-95 shadow-2xs"
+                  title="Cerrar análisis"
+                >
+                  ✕
+                </button>
+              </div>
+
+              {/* Cuerpo Scrolleable sin barra de scroll */}
+              <div
+                ref={statsContentRef}
+                className="p-5 sm:p-6 overflow-y-auto no-scrollbar space-y-4 flex-1 text-xs"
+              >
+                {/* Resumen Principal: Gauge de Índice y Dictamen */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5 items-center bg-[#f5f0e6] p-4 sm:p-5 rounded-2xl border border-[#ded4c3]">
+                  {/* Gauge Radial */}
+                  <div className="flex flex-col items-center justify-center text-center">
+                    <div className="relative w-24 h-24 flex items-center justify-center">
+                      <svg className="w-full h-full -rotate-90" viewBox="0 0 36 36">
+                        <circle cx="18" cy="18" r="14" fill="none" stroke="#ede6d8" strokeWidth="3.5" />
+                        <circle
+                          cx="18"
+                          cy="18"
+                          r="14"
+                          fill="none"
+                          stroke={isOptimo ? '#10b981' : isObservado ? '#f59e0b' : '#ef4444'}
+                          strokeWidth="3.5"
+                          strokeDasharray={`${(metrics.totalIndex / 100) * 88} 88`}
+                          strokeLinecap="round"
+                          className="transition-all duration-700 ease-out"
+                        />
+                      </svg>
+                      <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
+                        <span className="text-xl font-black text-[#2c2724] leading-none">{metrics.totalIndex}%</span>
+                        <span className="text-[8px] font-bold text-[#7c746d] uppercase mt-0.5">Índice</span>
+                      </div>
+                    </div>
+                    <span className="text-[11px] font-extrabold text-[#2c2724] mt-1.5">Conformidad Sensorial</span>
+                  </div>
+
+                  {/* Dictamen y Calificación */}
+                  <div className="sm:col-span-2 space-y-2 border-t sm:border-t-0 sm:border-l border-[#ded4c3] pt-3 sm:pt-0 sm:pl-4 text-xs">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[#7c746d]">Dictamen Oficial:</span>
+                      <span className={`px-2.5 py-0.5 rounded-full font-black text-xs inline-flex items-center gap-1 ${
+                        selectedStats.g3_aprobacion === 'Sí'
+                          ? 'bg-emerald-100 text-emerald-800 border border-emerald-300'
+                          : selectedStats.g3_aprobacion === 'Sí con observaciones'
+                          ? 'bg-amber-100 text-amber-800 border border-amber-300'
+                          : 'bg-[#fdf2f2] text-[#eb5757] border border-[#fecaca]'
+                      }`}>
+                        {selectedStats.g3_aprobacion === 'Sí' ? 'Aprobado para despacho' : selectedStats.g3_aprobacion === 'Sí con observaciones' ? 'Aprobado c/ Observación' : 'Rechazado'}
+                      </span>
+                    </div>
+
+                    <div className="flex items-center justify-between">
+                      <span className="text-[#7c746d]">Aceptación General:</span>
+                      <span className="font-mono font-black text-sm text-amber-600 flex items-center gap-1">
+                        {selectedStats.g2_gustoGeneral} de 5 <Star className="w-3.5 h-3.5 fill-amber-500 text-amber-500" />
+                      </span>
+                    </div>
+
+                    <div className="flex items-center justify-between">
+                      <span className="text-[#7c746d]">Comparación con Estándar:</span>
+                      <strong className="text-[#2c2724]">{selectedStats.g1_estandarGusto}</strong>
+                    </div>
+
+                    <div className="pt-1.5 text-[11px]">
+                      <span className={`px-2 py-0.5 rounded-md font-bold inline-block ${
+                        isOptimo
+                          ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                          : isObservado
+                          ? 'bg-amber-50 text-amber-700 border border-amber-200'
+                          : 'bg-rose-50 text-rose-700 border border-rose-200'
+                      }`}>
+                        {isOptimo
+                          ? 'Cumple con los estándares organolépticos de Mi Gusto'
+                          : isObservado
+                          ? 'Registra observaciones a monitorear en próximas bateas'
+                          : 'Muestra con desvíos sensoriales no conformes'}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Los 4 Pilares Sensoriales (Barras de Rendimiento Técnico) */}
+                <div className="space-y-3">
+                  <h3 className="text-xs font-black uppercase tracking-wider text-[#7c746d]">
+                    Desglose por Dimensión Organoléptica
+                  </h3>
+
+                  <div className="space-y-2.5 text-xs">
+                    {/* Pilar 1: Vista */}
+                    <div className="p-3 rounded-2xl bg-[#fdfbf7] border border-[#ded4c3] shadow-xs space-y-1.5">
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="font-black text-[#2c2724]">1. Vista y Aspecto Visual</span>
+                        <span className="font-mono font-black text-[#4f46e5]">{metrics.vistaScore}%</span>
+                      </div>
+                      <div className="w-full h-2.5 rounded-full bg-[#ede6d8] overflow-hidden">
+                        <div
+                          className="h-full rounded-full bg-[#4f46e5] transition-all duration-700"
+                          style={{ width: `${metrics.vistaScore}%` }}
+                        />
+                      </div>
+                      <div className="flex items-center justify-between text-[11px] text-[#7c746d]">
+                        <span>Color: <strong>{selectedStats.v1_color}</strong> • Relleno: <strong>{selectedStats.v2_cantidad}</strong> • Mezclado: <strong>{selectedStats.v3_mezclado}</strong></span>
+                        <span className="font-semibold text-[#2c2724]">Sellado: {selectedStats.v6_selladoCarne}</span>
+                      </div>
+                    </div>
+
+                    {/* Pilar 2: Olfato */}
+                    <div className="p-3 rounded-2xl bg-[#fdfbf7] border border-[#ded4c3] shadow-xs space-y-1.5">
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="font-black text-[#2c2724]">2. Olfato y Perfil Aromático</span>
+                        <span className="font-mono font-black text-[#5969E6]">{metrics.olfatoScore}%</span>
+                      </div>
+                      <div className="w-full h-2.5 rounded-full bg-[#ede6d8] overflow-hidden">
+                        <div
+                          className="h-full rounded-full bg-[#5969E6] transition-all duration-700"
+                          style={{ width: `${metrics.olfatoScore}%` }}
+                        />
+                      </div>
+                      <div className="flex items-center justify-between text-[11px] text-[#7c746d]">
+                        <span>Intensidad: <strong>{selectedStats.o1_intensidadAroma}</strong> • Característico: <strong>{selectedStats.o2_aromaCaracteristico}</strong></span>
+                        <span className={`font-semibold ${metrics.oloresExtranos.length === 0 ? 'text-emerald-700' : 'text-rose-600'}`}>
+                          {metrics.oloresExtranos.length === 0 ? '✓ Sin olores extraños' : `Desvío: ${metrics.oloresExtranos.join(', ')}`}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Pilar 3: Boca */}
+                    <div className="p-3 rounded-2xl bg-[#fdfbf7] border border-[#ded4c3] shadow-xs space-y-1.5">
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="font-black text-[#2c2724]">3. Boca, Textura y Retrogusto</span>
+                        <span className="font-mono font-black text-[#FC7572]">{metrics.bocaScore}%</span>
+                      </div>
+                      <div className="w-full h-2.5 rounded-full bg-[#ede6d8] overflow-hidden">
+                        <div
+                          className="h-full rounded-full bg-[#FC7572] transition-all duration-700"
+                          style={{ width: `${metrics.bocaScore}%` }}
+                        />
+                      </div>
+                      <div className="flex items-center justify-between text-[11px] text-[#7c746d]">
+                        <span>Masa: <strong>{selectedStats.b2_texturaMasa}</strong> • Jugosidad: <strong>{selectedStats.b3_jugosidadRelleno}</strong> • Sal: <strong>{selectedStats.b5_sal}</strong></span>
+                        <span className={`font-semibold ${metrics.saboresExtranos.length === 0 ? 'text-emerald-700' : 'text-rose-600'}`}>
+                          {metrics.saboresExtranos.length === 0 ? '✓ Sin sabores extraños' : `Desvío: ${metrics.saboresExtranos.join(', ')}`}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Pilar 4: Consistencia Global */}
+                    <div className="p-3 rounded-2xl bg-[#fdfbf7] border border-[#ded4c3] shadow-xs space-y-1.5">
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="font-black text-[#2c2724]">4. Consistencia y Aprobación Global</span>
+                        <span className="font-mono font-black text-amber-600">{metrics.globalScore}%</span>
+                      </div>
+                      <div className="w-full h-2.5 rounded-full bg-[#ede6d8] overflow-hidden">
+                        <div
+                          className="h-full rounded-full bg-amber-500 transition-all duration-700"
+                          style={{ width: `${metrics.globalScore}%` }}
+                        />
+                      </div>
+                      <div className="flex items-center justify-between text-[11px] text-[#7c746d]">
+                        <span>Dictamen: <strong>{selectedStats.g3_aprobacion}</strong></span>
+                        <span className="font-semibold text-[#2c2724]">Puntuación: {selectedStats.g2_gustoGeneral}/5 estrellas</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Hallazgos e Indicadores Técnicos */}
+                <div className="bg-[#f5f0e6] p-4 rounded-2xl border border-[#ded4c3] space-y-2.5 text-xs">
+                  <span className="font-black text-[#5969E6] uppercase text-[10px] block tracking-wider">
+                    Indicadores de Cata
+                  </span>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px]">
+                    <div>
+                      <span className="text-[#7c746d]">Primer Impacto en Boca:</span>
+                      <div className="flex flex-wrap gap-1 mt-1">
+                        {(selectedStats.b1_primerImpacto || []).map((imp, idx) => (
+                          <span key={idx} className="px-2 py-0.5 rounded-md bg-[#fdfbf7] border border-[#ded4c3] font-bold text-[#2c2724]">
+                            {imp}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div>
+                      <span className="text-[#7c746d]">Retrogusto / Final en Boca:</span>
+                      <p className="font-bold text-[#2c2724] mt-1">{selectedStats.b11_retrogusto || 'N/A'}</p>
+                    </div>
+                  </div>
+
+                  {selectedStats.obs_global && (
+                    <div className="pt-2 border-t border-[#ded4c3] text-[11px]">
+                      <span className="text-[#7c746d] font-bold">Observaciones del auditor:</span>
+                      <p className="text-[#2c2724] italic mt-0.5">"{selectedStats.obs_global}"</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Pie de modal fijo con firma y botón cerrar */}
+              <div className="p-4 sm:p-5 border-t border-[#ded4c3] bg-[#f5f0e6]/70 shrink-0 flex items-center justify-between">
+                <div>
+                  {selectedStats.firmaEvaluador && (
+                    <div className="flex items-center gap-2">
+                      <span className="text-[10px] text-[#7c746d] font-semibold">Firma registrada:</span>
+                      <img src={selectedStats.firmaEvaluador} alt="Firma" className="h-8 max-w-[100px] object-contain opacity-80" />
+                    </div>
+                  )}
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => setSelectedStats(null)}
+                  className="py-2.5 px-6 rounded-xl bg-[#4f46e5] hover:bg-[#4338ca] text-white font-extrabold text-xs uppercase tracking-wider shadow-md shadow-[#4f46e5]/25 active:scale-95 transition-all"
+                >
+                  Cerrar Análisis
+                </button>
+              </div>
+            </div>
+          </div>,
+          document.body
+        );
+      })()}
     </div>
   );
 };
