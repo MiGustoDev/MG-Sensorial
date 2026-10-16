@@ -40,20 +40,22 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   const [isFilterDropdownOpen, setIsFilterDropdownOpen] = useState(false);
   const [selectedEvaluation, setSelectedEvaluation] = useState<SensorialEvaluationRecord | null>(null);
   const [selectedStats, setSelectedStats] = useState<SensorialEvaluationRecord | null>(null);
+  const [evaluationToDelete, setEvaluationToDelete] = useState<SensorialEvaluationRecord | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const statsContentRef = useRef<HTMLDivElement>(null);
   const evalContentRef = useRef<HTMLDivElement>(null);
 
   // Bloquear scroll de la página de fondo cuando cualquier modal esté abierto
   useEffect(() => {
-    if (selectedEvaluation || selectedStats) {
+    if (selectedEvaluation || selectedStats || evaluationToDelete) {
       const originalOverflow = document.body.style.overflow;
       document.body.style.overflow = 'hidden';
       return () => {
         document.body.style.overflow = originalOverflow;
       };
     }
-  }, [selectedEvaluation, selectedStats]);
+  }, [selectedEvaluation, selectedStats, evaluationToDelete]);
 
   // Asegurar que al abrir el modal siempre comience desde la parte superior (top: 0)
   useEffect(() => {
@@ -140,9 +142,10 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     fetchEvaluations();
   }, []);
 
-  const handleDelete = async (id?: string) => {
-    if (!id) return;
-    if (!window.confirm('¿Deseás eliminar esta evaluación sensorial?')) return;
+  const handleConfirmDelete = async (closeWithAnimation: () => void) => {
+    if (!evaluationToDelete?.id) return;
+    const id = evaluationToDelete.id;
+    setIsDeleting(true);
 
     try {
       if (id.startsWith('local_')) {
@@ -154,8 +157,12 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
       }
       setEvaluations(prev => prev.filter(e => e.id !== id));
       if (selectedEvaluation?.id === id) setSelectedEvaluation(null);
+      closeWithAnimation();
+      setEvaluationToDelete(null);
     } catch (err) {
       console.error('Error al borrar', err);
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -354,7 +361,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   };
 
   return (
-    <div className="w-full max-w-xl sm:max-w-3xl md:max-w-5xl lg:max-w-6xl xl:max-w-7xl mx-auto px-3.5 sm:px-6 lg:px-8 py-5 sm:py-8 pb-24 animate-fade-in">
+    <div className="w-full max-w-xl sm:max-w-3xl md:max-w-5xl lg:max-w-6xl xl:max-w-7xl mx-auto px-3.5 sm:px-6 lg:px-8 py-5 sm:py-8 flex-1 flex flex-col justify-between animate-fade-in min-h-[calc(100vh-65px)]">
       {/* Header Admin */}
       <div className="flex items-center justify-between gap-3 mb-6 pb-4 border-b border-[#ded4c3]">
         <div className="flex items-center gap-3">
@@ -793,7 +800,18 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                       <BarChart3 className="w-3.5 h-3.5" />
                       <span>Stats</span>
                     </button>
-                    <span className="text-sm font-black text-amber-600 font-mono">{ev.g2_gustoGeneral}/5 ★</span>
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setEvaluationToDelete(ev);
+                      }}
+                      className="p-1.5 rounded-lg bg-[#fdf2f2] border border-[#fecaca] text-[#eb5757] hover:bg-[#eb5757] hover:text-white transition-all active:scale-95 shadow-2xs"
+                      title="Eliminar Registro"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                    <span className="text-sm font-black text-amber-600 font-mono ml-1">{ev.g2_gustoGeneral}/5 ★</span>
                   </div>
                 </div>
               </div>
@@ -900,7 +918,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                             <Eye className="w-4 h-4" />
                           </button>
                           <button
-                            onClick={() => handleDelete(ev.id)}
+                            onClick={() => setEvaluationToDelete(ev)}
                             title="Eliminar Registro"
                             className="w-8 h-8 rounded-xl bg-[#fdf2f2] border border-[#fecaca] text-[#eb5757] hover:bg-[#eb5757] hover:text-white transition-all flex items-center justify-center shadow-2xs active:scale-95"
                           >
@@ -1053,10 +1071,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
               <div className="flex items-center gap-2">
                 <button
                   type="button"
-                  onClick={() => {
-                    handleDelete(selectedEvaluation.id);
-                    closeWithAnimation();
-                  }}
+                  onClick={() => setEvaluationToDelete(selectedEvaluation)}
                   className="px-3 py-1.5 rounded-lg bg-[#fdf2f2] border border-[#fecaca] text-[#eb5757] hover:bg-rose-600 hover:text-white font-extrabold text-[11px] transition-all"
                 >
                   Eliminar
@@ -1339,6 +1354,96 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
           );
         }}
       </SmoothModal>
+
+      {/* Modal Estilizado de Confirmación de Eliminación */}
+      <SmoothModal
+        isOpen={Boolean(evaluationToDelete)}
+        onClose={() => setEvaluationToDelete(null)}
+        contentClassName="relative w-full max-w-md bg-[#fdfbf7] rounded-3xl p-6 sm:p-7 shadow-2xl border border-[#ded4c3] text-[#2c2724]"
+      >
+        {(closeWithAnimation) => evaluationToDelete && (
+          <div>
+            <button
+              type="button"
+              disabled={isDeleting}
+              onClick={closeWithAnimation}
+              className="absolute top-4 right-4 w-7 h-7 rounded-full bg-[#f5f0e6] border border-[#ded4c3] text-[#7c746d] hover:text-[#2c2724] hover:bg-[#ede6d8] flex items-center justify-center text-xs font-bold transition-all"
+            >
+              ✕
+            </button>
+
+            <div className="flex items-center gap-3.5 mb-4">
+              <div className="w-12 h-12 rounded-2xl bg-[#fdf2f2] border border-[#fecaca] flex items-center justify-center text-[#eb5757] shrink-0 shadow-xs">
+                <Trash2 className="w-6 h-6 stroke-[2.2]" />
+              </div>
+              <div>
+                <h3 className="text-base sm:text-lg font-black text-[#2c2724] leading-tight">
+                  ¿Eliminar evaluación?
+                </h3>
+                <p className="text-[11px] text-[#7c746d] mt-0.5">
+                  Protocolo Oficial INF-D003 • Control de Calidad
+                </p>
+              </div>
+            </div>
+
+            <div className="p-3.5 rounded-2xl bg-[#f5f0e6] border border-[#ded4c3] space-y-1.5 text-xs mb-4">
+              <div className="flex items-center justify-between">
+                <span className="text-[#7c746d]">Gusto:</span>
+                <strong className="text-[#2c2724] font-black">{evaluationToDelete.gusto}</strong>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-[#7c746d]">Lote / Batea:</span>
+                <span className="font-mono font-bold text-[#5969E6]">{evaluationToDelete.loteBatea}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-[#7c746d]">Evaluador:</span>
+                <span className="font-semibold text-[#2c2724]">{evaluationToDelete.evaluador}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-[#7c746d]">Fecha y hora:</span>
+                <span className="text-[#7c746d] font-mono">{formatDisplayDate(evaluationToDelete.fecha)} {evaluationToDelete.hora} hs</span>
+              </div>
+            </div>
+
+            <p className="text-xs text-[#7c746d] mb-6 leading-relaxed">
+              Esta acción eliminará de forma permanente el registro del historial de calidad. <strong className="text-[#2c2724]">No se podrá recuperar.</strong>
+            </p>
+
+            <div className="flex items-center justify-end gap-2.5">
+              <button
+                type="button"
+                disabled={isDeleting}
+                onClick={() => handleConfirmDelete(closeWithAnimation)}
+                className="px-5 py-2.5 rounded-xl bg-[#eb5757] hover:bg-[#d94444] text-white font-black text-xs uppercase tracking-wider shadow-md shadow-[#eb5757]/25 active:scale-95 transition-all flex items-center gap-1.5 disabled:opacity-50"
+              >
+                {isDeleting ? (
+                  <span>Eliminando...</span>
+                ) : (
+                  <>
+                    <Trash2 className="w-3.5 h-3.5" />
+                    <span>Eliminar Registro</span>
+                  </>
+                )}
+              </button>
+              <button
+                type="button"
+                disabled={isDeleting}
+                onClick={closeWithAnimation}
+                className="px-4 py-2.5 rounded-xl bg-[#f5f0e6] border border-[#ded4c3] text-[#4a423b] hover:bg-[#ede6d8] font-bold text-xs transition-all active:scale-95 disabled:opacity-50"
+              >
+                Cancelar
+              </button>
+            </div>
+          </div>
+        )}
+      </SmoothModal>
+
+      {/* Footer Sutil - Siempre al pie del viewport */}
+      <footer className="mt-auto pt-8 pb-3 border-t border-[#ded4c3] text-center">
+        <p className="text-[10px] sm:text-[11px] text-[#7c746d] font-medium tracking-wide">
+          © Desarrollado por el Departamento de Sistemas de Mi Gusto | Todos los derechos reservados.
+        </p>
+      </footer>
     </div>
   );
 };
