@@ -201,3 +201,185 @@ export const SmoothModal: React.FC<SmoothModalProps> = ({
     document.body
   );
 };
+
+/**
+ * Gauge circular animado con GSAP (círculo de conformidad / porcentaje)
+ */
+interface AnimatedRadialGaugeProps {
+  percentage: number;
+  strokeColor: string;
+  sizeClassName?: string;
+  strokeWidth?: number;
+  duration?: number;
+  delay?: number;
+  children?: React.ReactNode;
+}
+
+export const AnimatedRadialGauge: React.FC<AnimatedRadialGaugeProps> = ({
+  percentage,
+  strokeColor,
+  sizeClassName = 'w-24 h-24',
+  strokeWidth = 3.5,
+  duration = 1.1,
+  delay = 0.05,
+  children
+}) => {
+  const [progress, setProgress] = useState(0);
+  const progressRef = useRef({ val: 0 });
+
+  useEffect(() => {
+    const target = Math.max(0, Math.min(100, percentage));
+    const obj = progressRef.current;
+    obj.val = 0;
+    setProgress(0);
+
+    const tween = gsap.to(obj, {
+      val: target,
+      duration,
+      delay,
+      ease: 'power2.out',
+      onUpdate: () => {
+        setProgress(obj.val);
+      }
+    });
+
+    return () => {
+      tween.kill();
+    };
+  }, [percentage, duration, delay]);
+
+  const dashLength = (progress / 100) * 88;
+
+  return (
+    <div className={`relative ${sizeClassName} flex items-center justify-center shrink-0`}>
+      <svg className="w-full h-full -rotate-90" viewBox="0 0 36 36">
+        <circle cx="18" cy="18" r="14" fill="none" stroke="#ede6d8" strokeWidth={strokeWidth} />
+        {progress > 0.05 && (
+          <circle
+            cx="18"
+            cy="18"
+            r="14"
+            fill="none"
+            stroke={strokeColor}
+            strokeWidth={strokeWidth}
+            strokeDasharray={`${dashLength} 88`}
+            strokeDashoffset="0"
+            strokeLinecap="round"
+          />
+        )}
+      </svg>
+      {children}
+    </div>
+  );
+};
+
+/**
+ * Gráfico Donut de 3 segmentos animado con GSAP (Aprobados, Observados, Rechazados)
+ */
+interface AnimatedDonutChartProps {
+  total: number;
+  aprobados: number;
+  observados: number;
+  rechazados: number;
+  sizeClassName?: string;
+  strokeWidth?: number;
+  duration?: number;
+  delay?: number;
+  children?: React.ReactNode;
+}
+
+export const AnimatedDonutChart: React.FC<AnimatedDonutChartProps> = ({
+  total,
+  aprobados,
+  observados,
+  rechazados,
+  sizeClassName = 'w-28 h-28',
+  strokeWidth = 4,
+  duration = 1.1,
+  delay = 0.05,
+  children
+}) => {
+  const [progress, setProgress] = useState(0);
+  const progressRef = useRef({ val: 0 });
+
+  useEffect(() => {
+    const obj = progressRef.current;
+    obj.val = 0;
+    setProgress(0);
+
+    const tween = gsap.to(obj, {
+      val: 1,
+      duration,
+      delay,
+      ease: 'power2.out',
+      onUpdate: () => {
+        setProgress(obj.val);
+      }
+    });
+
+    return () => {
+      tween.kill();
+    };
+  }, [total, aprobados, observados, rechazados, duration, delay]);
+
+  const hasData = total > 0;
+  const apShare = hasData ? aprobados / total : 0;
+  const obShare = hasData ? observados / total : 0;
+  const reShare = hasData ? rechazados / total : 0;
+
+  const apLen = progress * apShare * 88;
+  const obLen = progress * obShare * 88;
+  const reLen = progress * reShare * 88;
+
+  const obOffset = -apLen;
+  const reOffset = -(apLen + obLen);
+
+  return (
+    <div className={`relative ${sizeClassName} flex items-center justify-center shrink-0`}>
+      <svg className="w-full h-full -rotate-90" viewBox="0 0 36 36">
+        <circle cx="18" cy="18" r="14" fill="none" stroke="#ede6d8" strokeWidth={strokeWidth} />
+        {hasData && aprobados > 0 && progress > 0.01 && (
+          <circle
+            cx="18"
+            cy="18"
+            r="14"
+            fill="none"
+            stroke="#10b981"
+            strokeWidth={strokeWidth}
+            strokeDasharray={`${apLen} 88`}
+            strokeDashoffset="0"
+            strokeLinecap="round"
+          />
+        )}
+        {hasData && observados > 0 && progress > 0.01 && (
+          <circle
+            cx="18"
+            cy="18"
+            r="14"
+            fill="none"
+            stroke="#f59e0b"
+            strokeWidth={strokeWidth}
+            strokeDasharray={`${obLen} 88`}
+            strokeDashoffset={`${obOffset}`}
+            strokeLinecap="round"
+          />
+        )}
+        {hasData && rechazados > 0 && progress > 0.01 && (
+          <circle
+            cx="18"
+            cy="18"
+            r="14"
+            fill="none"
+            stroke="#ef4444"
+            strokeWidth={strokeWidth}
+            strokeDasharray={`${reLen} 88`}
+            strokeDashoffset={`${reOffset}`}
+            strokeLinecap="round"
+          />
+        )}
+      </svg>
+      {children}
+    </div>
+  );
+};
+

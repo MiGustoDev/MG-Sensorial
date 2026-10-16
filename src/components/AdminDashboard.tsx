@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import type { SensorialEvaluationRecord } from '../types';
 import { formatDisplayDate } from '../types';
 import { supabase } from '../lib/supabase';
-import { AnimatedNumber, AnimatedBar, SmoothModal } from '../utils/gsapAnimations';
+import { AnimatedNumber, AnimatedBar, SmoothModal, AnimatedDonutChart, AnimatedRadialGauge } from '../utils/gsapAnimations';
 import {
   ArrowLeft,
   Search,
@@ -469,60 +469,25 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
           </div>
 
           <div className="py-4 flex items-center justify-around gap-4">
-            {/* SVG Donut */}
-            <div className="relative w-28 h-28 flex items-center justify-center shrink-0">
-              <svg className="w-full h-full -rotate-90" viewBox="0 0 36 36">
-                <circle cx="18" cy="18" r="14" fill="none" stroke="#ede6d8" strokeWidth="4" />
-                {stats.total > 0 && stats.aprobados > 0 && (
-                  <circle
-                    cx="18"
-                    cy="18"
-                    r="14"
-                    fill="none"
-                    stroke="#10b981"
-                    strokeWidth="4"
-                    strokeDasharray={`${(stats.aprobados / stats.total) * 88} 88`}
-                    strokeDashoffset="0"
-                    strokeLinecap="round"
-                    className="transition-all duration-700 ease-out"
-                  />
-                )}
-                {stats.total > 0 && stats.observados > 0 && (
-                  <circle
-                    cx="18"
-                    cy="18"
-                    r="14"
-                    fill="none"
-                    stroke="#f59e0b"
-                    strokeWidth="4"
-                    strokeDasharray={`${(stats.observados / stats.total) * 88} 88`}
-                    strokeDashoffset={`-${(stats.aprobados / stats.total) * 88}`}
-                    strokeLinecap="round"
-                    className="transition-all duration-700 ease-out"
-                  />
-                )}
-                {stats.total > 0 && stats.rechazados > 0 && (
-                  <circle
-                    cx="18"
-                    cy="18"
-                    r="14"
-                    fill="none"
-                    stroke="#ef4444"
-                    strokeWidth="4"
-                    strokeDasharray={`${(stats.rechazados / stats.total) * 88} 88`}
-                    strokeDashoffset={`-${((stats.aprobados + stats.observados) / stats.total) * 88}`}
-                    strokeLinecap="round"
-                    className="transition-all duration-700 ease-out"
-                  />
-                )}
-              </svg>
+            {/* SVG Donut con animación GSAP */}
+            <AnimatedDonutChart
+              total={stats.total}
+              aprobados={stats.aprobados}
+              observados={stats.observados}
+              rechazados={stats.rechazados}
+              sizeClassName="w-28 h-28"
+              strokeWidth={4}
+            >
               <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
-                <span className="text-base font-black text-[#2c2724] leading-none">
-                  {stats.total ? Math.round((stats.aprobados / stats.total) * 100) : 0}%
-                </span>
+                <AnimatedNumber
+                  value={stats.total ? Math.round((stats.aprobados / stats.total) * 100) : 0}
+                  suffix="%"
+                  duration={1.1}
+                  className="text-base font-black text-[#2c2724] leading-none"
+                />
                 <span className="text-[9px] font-bold text-[#7c746d] uppercase mt-0.5">Aprobado</span>
               </div>
-            </div>
+            </AnimatedDonutChart>
 
             {/* Leyenda */}
             <div className="space-y-1.5 flex-1 min-w-0 text-xs">
@@ -1149,26 +1114,17 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5 items-center bg-[#f5f0e6] p-4 sm:p-5 rounded-2xl border border-[#ded4c3]">
                   {/* Gauge Radial */}
                   <div className="flex flex-col items-center justify-center text-center">
-                    <div className="relative w-24 h-24 flex items-center justify-center">
-                      <svg className="w-full h-full -rotate-90" viewBox="0 0 36 36">
-                        <circle cx="18" cy="18" r="14" fill="none" stroke="#ede6d8" strokeWidth="3.5" />
-                        <circle
-                          cx="18"
-                          cy="18"
-                          r="14"
-                          fill="none"
-                          stroke={isOptimo ? '#10b981' : isObservado ? '#f59e0b' : '#ef4444'}
-                          strokeWidth="3.5"
-                          strokeDasharray={`${(metrics.totalIndex / 100) * 88} 88`}
-                          strokeLinecap="round"
-                          className="transition-all duration-700 ease-out"
-                        />
-                      </svg>
+                    <AnimatedRadialGauge
+                      percentage={metrics.totalIndex}
+                      strokeColor={isOptimo ? '#10b981' : isObservado ? '#f59e0b' : '#ef4444'}
+                      strokeWidth={3.5}
+                      sizeClassName="w-24 h-24"
+                    >
                       <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
                         <AnimatedNumber value={metrics.totalIndex} suffix="%" className="text-xl font-black text-[#2c2724] leading-none" />
                         <span className="text-[8px] font-bold text-[#7c746d] uppercase mt-0.5">Índice</span>
                       </div>
-                    </div>
+                    </AnimatedRadialGauge>
                     <span className="text-[11px] font-extrabold text-[#2c2724] mt-1.5">Conformidad Sensorial</span>
                   </div>
 
