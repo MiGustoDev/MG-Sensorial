@@ -464,7 +464,7 @@ export const EvaluationForm: React.FC<EvaluationFormProps> = ({ onSavedSuccess, 
           particleCount: 110,
           spread: 80,
           origin: { y: 0.6 },
-          colors: ['#3b68ff', '#2563eb', '#10b981', '#f59e0b', '#ffffff', '#ff5757']
+          colors: ['#4f46e5', '#4338ca', '#eb5757', '#d97706', '#10b981', '#f5f0e6']
         });
         window.scrollTo({ top: 0, behavior: 'smooth' });
       }
@@ -537,10 +537,10 @@ export const EvaluationForm: React.FC<EvaluationFormProps> = ({ onSavedSuccess, 
   ) => (
     <div className="space-y-3.5 animate-fade-in">
       <div>
-        <h3 className="text-xs sm:text-sm font-extrabold text-slate-900 leading-snug">
+        <h3 className="text-xs sm:text-sm font-extrabold text-[#2c2724] leading-snug">
           {title}
         </h3>
-        {subtitle && <p className="text-[11px] text-slate-500 mt-0.5">{subtitle}</p>}
+        {subtitle && <p className="text-[11px] text-[#7c746d] mt-0.5">{subtitle}</p>}
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
@@ -553,14 +553,14 @@ export const EvaluationForm: React.FC<EvaluationFormProps> = ({ onSavedSuccess, 
               onClick={() => onChange(opt)}
               className={`p-3 rounded-xl text-xs sm:text-sm font-bold text-left transition-all border flex items-center justify-between active:scale-[0.99] ${
                 isSelected
-                  ? 'bg-[#3b68ff] text-white border-[#3b68ff] shadow-sm'
-                  : 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100'
+                  ? 'bg-[#4f46e5] text-white border-[#4f46e5] shadow-sm'
+                  : 'bg-[#f5f0e6] border-[#e2d9c8] text-[#3d3630] hover:bg-[#ede6d8]'
               }`}
             >
               <span>{opt}</span>
               <div
                 className={`w-4 h-4 rounded-full border flex items-center justify-center shrink-0 ml-2 ${
-                  isSelected ? 'border-white bg-white text-[#3b68ff]' : 'border-slate-300 bg-white'
+                  isSelected ? 'border-white bg-white text-[#4f46e5]' : 'border-[#ded4c3] bg-white'
                 }`}
               >
                 {isSelected && <Check className="w-3 h-3 stroke-[3]" />}
@@ -583,10 +583,10 @@ export const EvaluationForm: React.FC<EvaluationFormProps> = ({ onSavedSuccess, 
   ) => (
     <div className="space-y-3.5 animate-fade-in">
       <div>
-        <h3 className="text-xs sm:text-sm font-extrabold text-slate-900 leading-snug">
+        <h3 className="text-xs sm:text-sm font-extrabold text-[#2c2724] leading-snug">
           {title}
         </h3>
-        <p className="text-[11px] text-slate-500 mt-0.5">
+        <p className="text-[11px] text-[#7c746d] mt-0.5">
           {subtitle || 'Podés seleccionar una o más opciones que correspondan.'}
         </p>
       </div>
@@ -594,11 +594,11 @@ export const EvaluationForm: React.FC<EvaluationFormProps> = ({ onSavedSuccess, 
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
         {options.map(opt => {
           const isSelected = currentList.includes(opt);
-          let activeClass = 'bg-[#3b68ff] text-white border-[#3b68ff] shadow-sm';
+          let activeClass = 'bg-[#4f46e5] text-white border-[#4f46e5] shadow-sm';
           if (normalOption && opt === normalOption) {
             activeClass = 'bg-emerald-600 text-white border-emerald-500 shadow-sm';
           } else if (normalOption && opt !== normalOption) {
-            activeClass = 'bg-[#ff5757] text-white border-[#ff5757] shadow-sm';
+            activeClass = 'bg-[#eb5757] text-white border-[#eb5757] shadow-sm';
           }
 
           return (
@@ -609,7 +609,7 @@ export const EvaluationForm: React.FC<EvaluationFormProps> = ({ onSavedSuccess, 
               className={`p-3 rounded-xl text-xs font-bold text-center transition-all border active:scale-95 flex items-center justify-center gap-1.5 ${
                 isSelected
                   ? activeClass
-                  : 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100'
+                  : 'bg-[#f5f0e6] border-[#e2d9c8] text-[#3d3630] hover:bg-[#ede6d8]'
               }`}
             >
               {isSelected && <Check className="w-3.5 h-3.5 shrink-0" />}
@@ -631,10 +631,10 @@ export const EvaluationForm: React.FC<EvaluationFormProps> = ({ onSavedSuccess, 
   ) => (
     <div className="space-y-3.5 animate-fade-in">
       <div>
-        <h3 className="text-xs sm:text-sm font-extrabold text-slate-900 leading-snug">
+        <h3 className="text-xs sm:text-sm font-extrabold text-[#2c2724] leading-snug">
           {title}
         </h3>
-        <p className="text-[11px] text-slate-500 mt-0.5">{subtitle}</p>
+        <p className="text-[11px] text-[#7c746d] mt-0.5">{subtitle}</p>
       </div>
 
       <div>
@@ -643,9 +643,9 @@ export const EvaluationForm: React.FC<EvaluationFormProps> = ({ onSavedSuccess, 
           value={value}
           onChange={e => onChange(e.target.value)}
           placeholder={placeholder}
-          className="w-full p-3 rounded-xl bg-slate-50 border border-slate-200 text-xs sm:text-sm text-slate-900 placeholder-slate-400 focus:bg-white focus:border-[#3b68ff] focus:ring-1 focus:ring-[#3b68ff] resize-none transition-all"
+          className="w-full p-3 rounded-xl bg-[#fdfbf7] border border-[#ded4c3] text-xs sm:text-sm text-[#2c2724] placeholder-[#a69c91] focus:bg-white focus:border-[#4f46e5] focus:ring-1 focus:ring-[#4f46e5] resize-none transition-all shadow-inner"
         />
-        <p className="text-[10px] text-slate-400 mt-1 text-right">
+        <p className="text-[10px] text-[#8e857b] mt-1 text-right">
           Opcional • Dejá en blanco si la muestra cumple el estándar
         </p>
       </div>
@@ -653,37 +653,37 @@ export const EvaluationForm: React.FC<EvaluationFormProps> = ({ onSavedSuccess, 
   );
 
   return (
-    <div className={`w-full max-w-xl mx-auto px-3.5 sm:px-4 py-4 flex-1 flex flex-col justify-between text-slate-800 ${
+    <div className={`w-full max-w-xl mx-auto px-3.5 sm:px-4 py-4 flex-1 flex flex-col justify-between text-[#2c2724] ${
       isEvaluationUnlocked ? 'pb-6' : 'pb-4'
     }`}>
       {/* Contenedor Principal Flexible */}
       <div className="flex-1 space-y-4 flex flex-col">
         {/* Cabecera Documental Oficial - Solo en la primer pantalla */}
         {(!isEvaluationUnlocked || isEditingSample) && (
-          <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-sm relative overflow-hidden">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-2.5 mb-3">
+          <div className="p-4 rounded-2xl bg-[#fdfbf7] border border-[#e2d9c8] shadow-sm relative overflow-hidden">
+            <div className="flex items-center justify-between border-b border-[#ebe3d5] pb-2.5 mb-3">
               <div className="flex items-center gap-2.5">
-                <div className="w-2.5 h-2.5 rounded-full bg-[#3b68ff]" />
-                <span className="text-sm font-extrabold tracking-tight text-slate-900 uppercase">
+                <div className="w-2.5 h-2.5 rounded-full bg-[#4f46e5]" />
+                <span className="text-sm font-extrabold tracking-tight text-[#2c2724] uppercase">
                   Control de Calidad
                 </span>
-                <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-md bg-slate-100 text-[#3b68ff] border border-slate-200">
+                <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-md bg-[#f3ede2] text-[#4f46e5] border border-[#e2d9c8]">
                   INF-D003
                 </span>
               </div>
               <div className="flex items-center gap-2 text-right">
-                <span className="text-[10px] font-mono text-slate-400">V2.0</span>
-                <span className="text-[10px] font-mono text-[#3b68ff] font-bold px-1.5 py-0.5 rounded bg-blue-50 border border-blue-200">
+                <span className="text-[10px] font-mono text-[#8e857b]">V2.0</span>
+                <span className="text-[10px] font-mono text-[#4f46e5] font-bold px-1.5 py-0.5 rounded bg-[#eeedfc] border border-[#d7d4f9]">
                   2026
                 </span>
               </div>
             </div>
 
             <div>
-              <h1 className="text-base sm:text-lg font-black tracking-tight text-slate-900 flex items-center gap-2">
+              <h1 className="text-base sm:text-lg font-black tracking-tight text-[#2c2724] flex items-center gap-2">
                 Evaluación Sensorial de Muestra
               </h1>
-              <p className="text-[11px] text-slate-500 mt-0.5">
+              <p className="text-[11px] text-[#7c746d] mt-0.5">
                 Protocolo técnico de degustación y control organoléptico
               </p>
             </div>
@@ -692,19 +692,19 @@ export const EvaluationForm: React.FC<EvaluationFormProps> = ({ onSavedSuccess, 
 
       {/* Alerta de guardado exitoso */}
       {successSaved && (
-        <div className="mb-4 p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-900 shadow-sm animate-fade-in flex flex-col gap-3">
+        <div className="mb-4 p-4 rounded-2xl bg-[#eaf8f0] border border-[#bbf7d0] text-emerald-950 shadow-sm animate-fade-in flex flex-col gap-3">
           <div className="flex items-start gap-3">
             <div className="w-9 h-9 rounded-xl bg-emerald-100 border border-emerald-200 flex items-center justify-center shrink-0 mt-0.5">
               <CheckCircle2 className="w-5 h-5 text-emerald-600" />
             </div>
             <div>
               <p className="font-extrabold text-sm text-emerald-950">¡Evaluación Registrada con Éxito!</p>
-              <p className="text-xs text-emerald-800/90 mt-0.5">
+              <p className="text-xs text-emerald-800 mt-0.5">
                 La muestra de <span className="font-bold text-emerald-950">{gusto === 'OTRO' ? otroGusto : gusto}</span> ({loteBatea}) fue guardada en el historial oficial de Calidad.
               </p>
             </div>
           </div>
-          <div className="flex items-center gap-2 pt-1 border-t border-emerald-200">
+          <div className="flex items-center gap-2 pt-1 border-t border-emerald-200/60">
             <button
               onClick={handleResetForNewEvaluation}
               className="text-xs font-bold px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white active:scale-95 transition-all flex items-center gap-1.5 shadow-sm"
@@ -724,9 +724,9 @@ export const EvaluationForm: React.FC<EvaluationFormProps> = ({ onSavedSuccess, 
 
       {/* Alerta de error de validación */}
       {errorMessage && (
-        <div className="mb-4 p-3.5 rounded-2xl bg-rose-50 border border-rose-200 text-[#ff5757] text-xs flex items-center gap-2.5 animate-fade-in">
-          <AlertTriangle className="w-4 h-4 text-[#ff5757] shrink-0" />
-          <span className="font-medium text-rose-800">{errorMessage}</span>
+        <div className="mb-4 p-3.5 rounded-2xl bg-[#fdf2f2] border border-[#fecaca] text-[#eb5757] text-xs flex items-center gap-2.5 animate-fade-in">
+          <AlertTriangle className="w-4 h-4 text-[#eb5757] shrink-0" />
+          <span className="font-semibold text-[#b91c1c]">{errorMessage}</span>
         </div>
       )}
 
@@ -734,11 +734,11 @@ export const EvaluationForm: React.FC<EvaluationFormProps> = ({ onSavedSuccess, 
           VISTA 1: FORMULARIO INICIAL DE REGISTRO DE MUESTRA
           ========================================================================= */}
       {(!isEvaluationUnlocked || isEditingSample) && (
-        <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm space-y-4 animate-fade-in">
-          <div className="flex items-center justify-between pb-2.5 border-b border-slate-100">
+        <div className="bg-[#fdfbf7] p-4 rounded-2xl border border-[#e2d9c8] shadow-sm space-y-4 animate-fade-in">
+          <div className="flex items-center justify-between pb-2.5 border-b border-[#ebe3d5]">
             <div className="flex items-center gap-2">
-              <ClipboardList className="w-4 h-4 text-[#3b68ff]" />
-              <h2 className="text-xs sm:text-sm font-extrabold uppercase tracking-wide text-slate-900">
+              <ClipboardList className="w-4 h-4 text-[#4f46e5]" />
+              <h2 className="text-xs sm:text-sm font-extrabold uppercase tracking-wide text-[#2c2724]">
                 Ficha de Muestra y Evaluador
               </h2>
             </div>
@@ -746,7 +746,7 @@ export const EvaluationForm: React.FC<EvaluationFormProps> = ({ onSavedSuccess, 
               <button
                 type="button"
                 onClick={() => setIsEditingSample(false)}
-                className="text-xs font-bold text-[#3b68ff] hover:text-[#2563eb]"
+                className="text-xs font-bold text-[#4f46e5] hover:text-[#4338ca]"
               >
                 Cerrar edición
               </button>
@@ -757,8 +757,8 @@ export const EvaluationForm: React.FC<EvaluationFormProps> = ({ onSavedSuccess, 
           <div className="grid grid-cols-2 gap-2.5">
             {/* Campo Fecha y su Desplegable */}
             <div className="relative">
-              <label className="flex items-center gap-1 text-[11px] font-bold text-slate-700 mb-1">
-                <Calendar className="w-3.5 h-3.5 text-[#3b68ff]" />
+              <label className="flex items-center gap-1 text-[11px] font-bold text-[#4a423b] mb-1">
+                <Calendar className="w-3.5 h-3.5 text-[#4f46e5]" />
                 <span>FECHA:</span>
               </label>
               <button
@@ -773,18 +773,18 @@ export const EvaluationForm: React.FC<EvaluationFormProps> = ({ onSavedSuccess, 
                   setIsTimePickerOpen(false);
                   setIsGustoDropdownOpen(false);
                 }}
-                className="w-full px-3 py-2.5 rounded-xl glass-input text-left text-xs text-slate-900 font-semibold flex items-center justify-between cursor-pointer active:scale-[0.99] transition-all hover:border-[#3b68ff]"
+                className="w-full px-3 py-2.5 rounded-xl glass-input text-left text-xs text-[#2c2724] font-semibold flex items-center justify-between cursor-pointer active:scale-[0.99] transition-all hover:border-[#4f46e5]"
               >
                 <span>{formatDisplayDate(fecha)}</span>
-                <Calendar className="w-3.5 h-3.5 text-[#3b68ff]" />
+                <Calendar className="w-3.5 h-3.5 text-[#4f46e5]" />
               </button>
 
               {/* DESPLEGABLE DE FECHA (Sin Modal) */}
               {isDatePickerOpen && (
                 <>
                   <div className="fixed inset-0 z-30" onClick={() => setIsDatePickerOpen(false)} />
-                  <div className="absolute left-0 top-full mt-1.5 z-40 w-72 sm:w-80 bg-white border border-slate-200 rounded-2xl p-3.5 shadow-xl space-y-3 animate-fade-in">
-                    <div className="flex items-center justify-between pb-2 border-b border-slate-100">
+                  <div className="absolute left-0 top-full mt-1.5 z-40 w-72 sm:w-80 bg-[#fdfbf7] border border-[#e2d9c8] rounded-2xl p-3.5 shadow-xl space-y-3 animate-fade-in">
+                    <div className="flex items-center justify-between pb-2 border-b border-[#ebe3d5]">
                       <button
                         type="button"
                         onClick={() => {
@@ -795,12 +795,12 @@ export const EvaluationForm: React.FC<EvaluationFormProps> = ({ onSavedSuccess, 
                             setCalMonth(m => m - 1);
                           }
                         }}
-                        className="p-1.5 rounded-lg bg-slate-50 border border-slate-200 text-slate-600 hover:text-slate-900 hover:bg-slate-100"
+                        className="p-1.5 rounded-lg bg-[#f5f0e6] border border-[#e2d9c8] text-[#4a423b] hover:text-[#2c2724] hover:bg-[#ede6d8]"
                       >
                         <ChevronLeft className="w-4 h-4" />
                       </button>
 
-                      <span className="font-bold text-xs sm:text-sm text-slate-900 capitalize">
+                      <span className="font-bold text-xs sm:text-sm text-[#2c2724] capitalize">
                         {MONTH_NAMES[calMonth]} {calYear}
                       </span>
 
@@ -814,14 +814,14 @@ export const EvaluationForm: React.FC<EvaluationFormProps> = ({ onSavedSuccess, 
                             setCalMonth(m => m + 1);
                           }
                         }}
-                        className="p-1.5 rounded-lg bg-slate-50 border border-slate-200 text-slate-600 hover:text-slate-900 hover:bg-slate-100"
+                        className="p-1.5 rounded-lg bg-[#f5f0e6] border border-[#e2d9c8] text-[#4a423b] hover:text-[#2c2724] hover:bg-[#ede6d8]"
                       >
                         <ChevronRight className="w-4 h-4" />
                       </button>
                     </div>
 
                     {/* Días de la semana */}
-                    <div className="grid grid-cols-7 gap-1 text-center text-[10.5px] font-bold text-[#3b68ff]">
+                    <div className="grid grid-cols-7 gap-1 text-center text-[10.5px] font-bold text-[#4f46e5]">
                       {DAYS_SHORT.map(d => (
                         <span key={d}>{d}</span>
                       ))}
@@ -842,10 +842,10 @@ export const EvaluationForm: React.FC<EvaluationFormProps> = ({ onSavedSuccess, 
                             onClick={() => handleSelectDate(day)}
                             className={`h-8 w-8 mx-auto rounded-lg text-xs font-semibold flex items-center justify-center transition-all ${
                               isSelected
-                                ? 'bg-[#3b68ff] text-white font-extrabold shadow-sm'
+                                ? 'bg-[#4f46e5] text-white font-extrabold shadow-sm'
                                 : isToday
-                                ? 'border border-[#ff5757] text-[#ff5757] bg-rose-50 font-bold'
-                                : 'text-slate-700 hover:bg-slate-100 hover:text-slate-900'
+                                ? 'border border-[#eb5757] text-[#eb5757] bg-[#fdf2f2] font-bold'
+                                : 'text-[#2c2724] hover:bg-[#f3ede2]'
                             }`}
                           >
                             {day}
@@ -854,7 +854,7 @@ export const EvaluationForm: React.FC<EvaluationFormProps> = ({ onSavedSuccess, 
                       })}
                     </div>
 
-                    <div className="flex items-center justify-between pt-2 border-t border-slate-100">
+                    <div className="flex items-center justify-between pt-2 border-t border-[#ebe3d5]">
                       <button
                         type="button"
                         onClick={() => {
@@ -862,7 +862,7 @@ export const EvaluationForm: React.FC<EvaluationFormProps> = ({ onSavedSuccess, 
                           setFecha(todayStr);
                           setIsDatePickerOpen(false);
                         }}
-                        className="text-xs font-bold text-[#3b68ff] hover:text-[#2563eb] px-2.5 py-1 rounded-lg hover:bg-blue-50"
+                        className="text-xs font-bold text-[#4f46e5] hover:text-[#4338ca] px-2.5 py-1 rounded-lg hover:bg-[#eeedfc]"
                       >
                         Hoy
                       </button>
@@ -870,7 +870,7 @@ export const EvaluationForm: React.FC<EvaluationFormProps> = ({ onSavedSuccess, 
                       <button
                         type="button"
                         onClick={() => setIsDatePickerOpen(false)}
-                        className="text-xs font-bold px-3 py-1.5 rounded-xl bg-slate-100 text-slate-700 hover:bg-slate-200"
+                        className="text-xs font-bold px-3 py-1.5 rounded-xl bg-[#f3ede2] border border-[#e2d9c8] text-[#2c2724] hover:bg-[#ede6d8]"
                       >
                         Listo
                       </button>
@@ -882,8 +882,8 @@ export const EvaluationForm: React.FC<EvaluationFormProps> = ({ onSavedSuccess, 
 
             {/* Campo Hora y su Desplegable */}
             <div className="relative">
-              <label className="flex items-center gap-1 text-[11px] font-bold text-slate-700 mb-1">
-                <Clock className="w-3.5 h-3.5 text-[#3b68ff]" />
+              <label className="flex items-center gap-1 text-[11px] font-bold text-[#4a423b] mb-1">
+                <Clock className="w-3.5 h-3.5 text-[#4f46e5]" />
                 <span>HORA:</span>
               </label>
               <button
@@ -893,20 +893,20 @@ export const EvaluationForm: React.FC<EvaluationFormProps> = ({ onSavedSuccess, 
                   setIsDatePickerOpen(false);
                   setIsGustoDropdownOpen(false);
                 }}
-                className="w-full px-3 py-2.5 rounded-xl glass-input text-left text-xs text-slate-900 font-semibold flex items-center justify-between cursor-pointer active:scale-[0.99] transition-all hover:border-[#3b68ff]"
+                className="w-full px-3 py-2.5 rounded-xl glass-input text-left text-xs text-[#2c2724] font-semibold flex items-center justify-between cursor-pointer active:scale-[0.99] transition-all hover:border-[#4f46e5]"
               >
                 <span>{hora} hs</span>
-                <Clock className="w-3.5 h-3.5 text-[#3b68ff]" />
+                <Clock className="w-3.5 h-3.5 text-[#4f46e5]" />
               </button>
 
               {/* DESPLEGABLE DE HORA (Sin Modal) */}
               {isTimePickerOpen && (
                 <>
                   <div className="fixed inset-0 z-30" onClick={() => setIsTimePickerOpen(false)} />
-                  <div className="absolute right-0 top-full mt-1.5 z-40 w-64 sm:w-72 bg-white border border-slate-200 rounded-2xl p-3.5 shadow-xl space-y-3 animate-fade-in">
-                    <div className="flex items-center justify-between pb-2 border-b border-slate-100">
-                      <span className="font-bold text-xs text-slate-800">Seleccionar Hora</span>
-                      <span className="text-xs font-mono font-extrabold text-[#3b68ff] bg-blue-50 px-2 py-0.5 rounded-lg border border-blue-200">
+                  <div className="absolute right-0 top-full mt-1.5 z-40 w-64 sm:w-72 bg-[#fdfbf7] border border-[#e2d9c8] rounded-2xl p-3.5 shadow-xl space-y-3 animate-fade-in">
+                    <div className="flex items-center justify-between pb-2 border-b border-[#ebe3d5]">
+                      <span className="font-bold text-xs text-[#2c2724]">Seleccionar Hora</span>
+                      <span className="text-xs font-mono font-extrabold text-[#4f46e5] bg-[#eeedfc] px-2 py-0.5 rounded-lg border border-[#d7d4f9]">
                         {hora} hs
                       </span>
                     </div>
@@ -914,7 +914,7 @@ export const EvaluationForm: React.FC<EvaluationFormProps> = ({ onSavedSuccess, 
                     <div className="grid grid-cols-2 gap-2.5">
                       {/* Columna Horas */}
                       <div>
-                        <span className="text-[10px] uppercase font-bold text-slate-500 block mb-1">Hora</span>
+                        <span className="text-[10px] uppercase font-bold text-[#7c746d] block mb-1">Hora</span>
                         <div className="grid grid-cols-3 gap-1 max-h-44 overflow-y-auto pr-1">
                           {Array.from({ length: 24 }, (_, i) => String(i).padStart(2, '0')).map(h => {
                             const isSelected = hora.startsWith(h + ':');
@@ -928,8 +928,8 @@ export const EvaluationForm: React.FC<EvaluationFormProps> = ({ onSavedSuccess, 
                                 }}
                                 className={`py-1 rounded-lg text-xs font-mono font-bold transition-colors ${
                                   isSelected
-                                    ? 'bg-[#3b68ff] text-white shadow-sm'
-                                    : 'bg-slate-50 border border-slate-200 text-slate-700 hover:bg-slate-100 hover:text-slate-900'
+                                    ? 'bg-[#4f46e5] text-white shadow-sm'
+                                    : 'bg-[#f5f0e6] border border-[#e2d9c8] text-[#2c2724] hover:bg-[#ede6d8]'
                                 }`}
                               >
                                 {h}
@@ -941,7 +941,7 @@ export const EvaluationForm: React.FC<EvaluationFormProps> = ({ onSavedSuccess, 
 
                       {/* Columna Minutos */}
                       <div>
-                        <span className="text-[10px] uppercase font-bold text-slate-500 block mb-1">Minutos</span>
+                        <span className="text-[10px] uppercase font-bold text-[#7c746d] block mb-1">Minutos</span>
                         <div className="grid grid-cols-2 gap-1 max-h-44 overflow-y-auto pr-1">
                           {['00', '05', '10', '15', '20', '25', '30', '35', '40', '45', '50', '55'].map(m => {
                             const isSelected = hora.endsWith(':' + m);
@@ -955,8 +955,8 @@ export const EvaluationForm: React.FC<EvaluationFormProps> = ({ onSavedSuccess, 
                                 }}
                                 className={`py-1 rounded-lg text-xs font-mono font-bold transition-colors ${
                                   isSelected
-                                    ? 'bg-[#3b68ff] text-white shadow-sm'
-                                    : 'bg-slate-50 border border-slate-200 text-slate-700 hover:bg-slate-100 hover:text-slate-900'
+                                    ? 'bg-[#4f46e5] text-white shadow-sm'
+                                    : 'bg-[#f5f0e6] border border-[#e2d9c8] text-[#2c2724] hover:bg-[#ede6d8]'
                                 }`}
                               >
                                 :{m}
@@ -967,7 +967,7 @@ export const EvaluationForm: React.FC<EvaluationFormProps> = ({ onSavedSuccess, 
                       </div>
                     </div>
 
-                    <div className="flex items-center justify-between pt-2 border-t border-slate-100">
+                    <div className="flex items-center justify-between pt-2 border-t border-[#ebe3d5]">
                       <button
                         type="button"
                         onClick={() => {
@@ -976,7 +976,7 @@ export const EvaluationForm: React.FC<EvaluationFormProps> = ({ onSavedSuccess, 
                           const m = String(now.getMinutes()).padStart(2, '0');
                           setHora(`${h}:${m}`);
                         }}
-                        className="text-xs font-bold text-[#3b68ff] hover:text-[#2563eb] px-2 py-1 rounded-lg hover:bg-blue-50"
+                        className="text-xs font-bold text-[#4f46e5] hover:text-[#4338ca] px-2 py-1 rounded-lg hover:bg-[#eeedfc]"
                       >
                         Ahora
                       </button>
@@ -984,7 +984,7 @@ export const EvaluationForm: React.FC<EvaluationFormProps> = ({ onSavedSuccess, 
                       <button
                         type="button"
                         onClick={() => setIsTimePickerOpen(false)}
-                        className="text-xs font-bold px-3 py-1.5 rounded-xl bg-[#3b68ff] text-white hover:bg-[#2c52e8]"
+                        className="text-xs font-bold px-3 py-1.5 rounded-xl bg-[#4f46e5] text-white hover:bg-[#4338ca] shadow-sm"
                       >
                         Listo
                       </button>
@@ -997,10 +997,10 @@ export const EvaluationForm: React.FC<EvaluationFormProps> = ({ onSavedSuccess, 
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <label className="flex items-center gap-1 text-[11px] font-bold text-slate-700 mb-1">
-                <User className="w-3.5 h-3.5 text-[#3b68ff]" />
+              <label className="flex items-center gap-1 text-[11px] font-bold text-[#4a423b] mb-1">
+                <User className="w-3.5 h-3.5 text-[#4f46e5]" />
                 <span>EVALUADOR:</span>
-                <span className="text-[#ff5757] font-extrabold text-sm ml-0.5" title="Campo obligatorio">*</span>
+                <span className="text-[#eb5757] font-extrabold text-sm ml-0.5" title="Campo obligatorio">*</span>
               </label>
               <input
                 type="text"
@@ -1008,20 +1008,20 @@ export const EvaluationForm: React.FC<EvaluationFormProps> = ({ onSavedSuccess, 
                 placeholder="Ej. Juan Pérez / Calidad"
                 value={evaluador}
                 onChange={e => setEvaluador(e.target.value)}
-                className={`w-full px-3 py-2.5 rounded-xl glass-input text-xs text-slate-900 placeholder-slate-400 ${
-                  validationAttempt && !evaluador.trim() ? 'border-[#ff5757] ring-1 ring-[#ff5757]' : ''
+                className={`w-full px-3 py-2.5 rounded-xl glass-input text-xs text-[#2c2724] placeholder-[#a69c91] ${
+                  validationAttempt && !evaluador.trim() ? 'border-[#eb5757] ring-1 ring-[#eb5757]' : ''
                 }`}
               />
               {validationAttempt && !evaluador.trim() && (
-                <span className="text-[10px] text-[#ff5757] mt-1 block font-medium">Campo obligatorio</span>
+                <span className="text-[10px] text-[#eb5757] mt-1 block font-medium">Campo obligatorio</span>
               )}
             </div>
 
             <div>
-              <label className="flex items-center gap-1 text-[11px] font-bold text-slate-700 mb-1">
-                <Layers className="w-3.5 h-3.5 text-[#3b68ff]" />
+              <label className="flex items-center gap-1 text-[11px] font-bold text-[#4a423b] mb-1">
+                <Layers className="w-3.5 h-3.5 text-[#4f46e5]" />
                 <span>LOTE / BATEA:</span>
-                <span className="text-[#ff5757] font-extrabold text-sm ml-0.5" title="Campo obligatorio">*</span>
+                <span className="text-[#eb5757] font-extrabold text-sm ml-0.5" title="Campo obligatorio">*</span>
               </label>
               <input
                 type="text"
@@ -1029,22 +1029,22 @@ export const EvaluationForm: React.FC<EvaluationFormProps> = ({ onSavedSuccess, 
                 placeholder="Ej. BATEA-04 / L-24"
                 value={loteBatea}
                 onChange={e => setLoteBatea(e.target.value.toUpperCase())}
-                className={`w-full px-3 py-2.5 rounded-xl glass-input text-xs font-mono font-bold uppercase text-[#3b68ff] placeholder-slate-400 ${
-                  validationAttempt && !loteBatea.trim() ? 'border-[#ff5757] ring-1 ring-[#ff5757]' : ''
+                className={`w-full px-3 py-2.5 rounded-xl glass-input text-xs font-mono font-bold uppercase text-[#4f46e5] placeholder-[#a69c91] ${
+                  validationAttempt && !loteBatea.trim() ? 'border-[#eb5757] ring-1 ring-[#eb5757]' : ''
                 }`}
               />
               {validationAttempt && !loteBatea.trim() && (
-                <span className="text-[10px] text-[#ff5757] mt-1 block font-medium">Campo obligatorio</span>
+                <span className="text-[10px] text-[#eb5757] mt-1 block font-medium">Campo obligatorio</span>
               )}
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-slate-100">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-[#ebe3d5]">
             <div>
-              <label className="flex items-center gap-1 text-[11px] font-bold text-slate-700 mb-1">
-                <Tag className="w-3.5 h-3.5 text-[#3b68ff]" />
+              <label className="flex items-center gap-1 text-[11px] font-bold text-[#4a423b] mb-1">
+                <Tag className="w-3.5 h-3.5 text-[#4f46e5]" />
                 <span>GUSTO A EVALUAR:</span>
-                <span className="text-[#ff5757] font-extrabold text-sm ml-0.5" title="Campo obligatorio">*</span>
+                <span className="text-[#eb5757] font-extrabold text-sm ml-0.5" title="Campo obligatorio">*</span>
               </label>
 
               {/* Selector Customizado de Gustos a Evaluar (SIN BUSCADOR) */}
@@ -1056,22 +1056,22 @@ export const EvaluationForm: React.FC<EvaluationFormProps> = ({ onSavedSuccess, 
                     setIsDatePickerOpen(false);
                     setIsTimePickerOpen(false);
                   }}
-                  className="w-full px-3 py-2.5 rounded-xl glass-input text-left text-xs text-slate-900 font-semibold flex items-center justify-between active:scale-[0.99] transition-all hover:border-[#3b68ff]"
+                  className="w-full px-3 py-2.5 rounded-xl glass-input text-left text-xs text-[#2c2724] font-semibold flex items-center justify-between active:scale-[0.99] transition-all hover:border-[#4f46e5]"
                 >
                   <span className="truncate">
                     {gusto === 'OTRO' ? (
-                      <span className="text-[#ff5757] font-bold">⭐ {otroGusto.trim() || 'OTRO / DESARROLLO'}</span>
+                      <span className="text-[#eb5757] font-bold">⭐ {otroGusto.trim() || 'OTRO / DESARROLLO'}</span>
                     ) : (
                       gusto
                     )}
                   </span>
-                  <ChevronDown className={`w-4 h-4 text-[#3b68ff] transition-transform duration-200 shrink-0 ${isGustoDropdownOpen ? 'rotate-180' : ''}`} />
+                  <ChevronDown className={`w-4 h-4 text-[#4f46e5] transition-transform duration-200 shrink-0 ${isGustoDropdownOpen ? 'rotate-180' : ''}`} />
                 </button>
 
                 {isGustoDropdownOpen && (
                   <>
                     <div className="fixed inset-0 z-30" onClick={() => setIsGustoDropdownOpen(false)} />
-                    <div className="absolute left-0 right-0 top-full mt-1.5 z-40 bg-white border border-slate-200 rounded-xl shadow-xl p-2 max-h-72 flex flex-col animate-fade-in">
+                    <div className="absolute left-0 right-0 top-full mt-1.5 z-40 bg-[#fdfbf7] border border-[#e2d9c8] rounded-xl shadow-xl p-2 max-h-72 flex flex-col animate-fade-in">
                       <div className="overflow-y-auto space-y-0.5 pr-1 flex-1">
                         {EMPANADAS_GUSTOS.map(g => {
                           const isSelected = gusto === g;
@@ -1085,8 +1085,8 @@ export const EvaluationForm: React.FC<EvaluationFormProps> = ({ onSavedSuccess, 
                               }}
                               className={`w-full text-left px-3 py-2 rounded-lg text-xs transition-colors flex items-center justify-between ${
                                 isSelected
-                                  ? 'bg-[#3b68ff] text-white font-bold'
-                                  : 'text-slate-700 hover:bg-slate-100 hover:text-slate-900'
+                                  ? 'bg-[#4f46e5] text-white font-bold'
+                                  : 'text-[#2c2724] hover:bg-[#eeedfc] hover:text-[#4f46e5]'
                               }`}
                             >
                               <span>{g}</span>
@@ -1095,7 +1095,7 @@ export const EvaluationForm: React.FC<EvaluationFormProps> = ({ onSavedSuccess, 
                           );
                         })}
 
-                        <div className="pt-1 mt-1 border-t border-slate-100">
+                        <div className="pt-1 mt-1 border-t border-[#ebe3d5]">
                           <button
                             type="button"
                             onClick={() => {
@@ -1104,8 +1104,8 @@ export const EvaluationForm: React.FC<EvaluationFormProps> = ({ onSavedSuccess, 
                             }}
                             className={`w-full text-left px-3 py-2 rounded-lg text-xs font-bold transition-colors flex items-center justify-between ${
                               gusto === 'OTRO'
-                                ? 'bg-[#ff5757] text-white'
-                                : 'text-[#ff5757] hover:bg-rose-50'
+                                ? 'bg-[#eb5757] text-white'
+                                : 'text-[#eb5757] hover:bg-[#fdf2f2]'
                             }`}
                           >
                             <span>⭐ OTRO / DESARROLLO...</span>
@@ -1120,23 +1120,23 @@ export const EvaluationForm: React.FC<EvaluationFormProps> = ({ onSavedSuccess, 
 
               {gusto === 'OTRO' && (
                 <div className="mt-2">
-                  <label className="flex items-center gap-1 text-[10px] font-bold text-slate-700 mb-1">
+                  <label className="flex items-center gap-1 text-[10px] font-bold text-[#4a423b] mb-1">
                     <span>ESPECIFICAR GUSTO:</span>
-                    <span className="text-[#ff5757] font-extrabold text-sm ml-0.5" title="Campo obligatorio">*</span>
+                    <span className="text-[#eb5757] font-extrabold text-sm ml-0.5" title="Campo obligatorio">*</span>
                   </label>
                   <input
                     type="text"
                     placeholder="Especificar sabor en desarrollo..."
                     value={otroGusto}
                     onChange={e => setOtroGusto(e.target.value)}
-                    className="w-full px-3 py-2.5 rounded-xl glass-input text-xs text-slate-900 placeholder-slate-400"
+                    className="w-full px-3 py-2.5 rounded-xl glass-input text-xs text-[#2c2724] placeholder-[#a69c91]"
                   />
                 </div>
               )}
             </div>
 
             <div>
-              <label className="flex items-center gap-1 text-[11px] font-bold text-slate-700 mb-1">
+              <label className="flex items-center gap-1 text-[11px] font-bold text-[#4a423b] mb-1">
                 <span>CÓDIGO DE MUESTRA (OPCIONAL):</span>
               </label>
               <input
@@ -1144,7 +1144,7 @@ export const EvaluationForm: React.FC<EvaluationFormProps> = ({ onSavedSuccess, 
                 placeholder="Ej. M-01 / CATA-A"
                 value={codigoMuestra}
                 onChange={e => setCodigoMuestra(e.target.value.toUpperCase())}
-                className="w-full px-3 py-2.5 rounded-xl glass-input text-xs font-mono uppercase text-slate-900 placeholder-slate-400"
+                className="w-full px-3 py-2.5 rounded-xl glass-input text-xs font-mono uppercase text-[#2c2724] placeholder-[#a69c91]"
               />
             </div>
           </div>
@@ -1154,7 +1154,7 @@ export const EvaluationForm: React.FC<EvaluationFormProps> = ({ onSavedSuccess, 
             <button
               type="button"
               onClick={handleUnlockEvaluation}
-              className="w-full py-3.5 px-4 rounded-xl bg-[#3b68ff] hover:bg-[#2563eb] text-white font-extrabold text-xs tracking-wider uppercase shadow-md shadow-[#3b68ff]/20 active:scale-[0.98] transition-all flex items-center justify-center gap-2 group"
+              className="w-full py-3.5 px-4 rounded-xl bg-[#4f46e5] hover:bg-[#4338ca] text-white font-extrabold text-xs tracking-wider uppercase shadow-md shadow-[#4f46e5]/20 active:scale-[0.98] transition-all flex items-center justify-center gap-2 group"
             >
               <span>{isEvaluationUnlocked ? 'Confirmar Datos de Muestra' : 'Comenzar Evaluación Sensorial'}</span>
               <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
@@ -1167,16 +1167,16 @@ export const EvaluationForm: React.FC<EvaluationFormProps> = ({ onSavedSuccess, 
           RESUMEN DE MUESTRA ACTIVA (VISIBLE CUANDO LA EVALUACIÓN ESTÁ DESPLEGADA)
           ========================================================================= */}
       {isEvaluationUnlocked && !showThankYou && (
-        <div id="resumen-muestra-activa" className="mb-4 p-3.5 rounded-2xl bg-white border border-slate-200 shadow-sm animate-fade-in scroll-mt-20">
-          <div className="flex items-center justify-between gap-2 pb-2 border-b border-slate-100">
+        <div id="resumen-muestra-activa" className="mb-4 p-3.5 rounded-2xl bg-[#fdfbf7] border border-[#e2d9c8] shadow-sm animate-fade-in scroll-mt-20">
+          <div className="flex items-center justify-between gap-2 pb-2 border-b border-[#e2d9c8]">
             <div className="flex items-center gap-1.5 flex-wrap">
               <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shrink-0" />
-              <span className="text-[10px] font-black uppercase tracking-wider text-slate-500">Muestra Activa</span>
-              <span className="text-xs font-mono font-bold px-2 py-0.5 rounded-md bg-blue-50 text-[#3b68ff] border border-blue-200">
+              <span className="text-[10px] font-black uppercase tracking-wider text-[#7c746d]">Muestra Activa</span>
+              <span className="text-xs font-mono font-bold px-2 py-0.5 rounded-md bg-[#eeedfc] text-[#4f46e5] border border-[#d7d4f9]">
                 Lote: {loteBatea}
               </span>
               {codigoMuestra && (
-                <span className="text-xs font-mono px-2 py-0.5 rounded-md bg-slate-100 text-slate-600 border border-slate-200">
+                <span className="text-xs font-mono px-2 py-0.5 rounded-md bg-[#f5f0e6] text-[#7c746d] border border-[#e2d9c8]">
                   {codigoMuestra}
                 </span>
               )}
@@ -1185,19 +1185,19 @@ export const EvaluationForm: React.FC<EvaluationFormProps> = ({ onSavedSuccess, 
             <button
               type="button"
               onClick={() => setIsEditingSample(prev => !prev)}
-              className="text-[11px] font-bold text-[#3b68ff] hover:text-[#2563eb] px-2.5 py-1 rounded-lg bg-blue-50 hover:bg-blue-100 border border-blue-200 flex items-center gap-1 active:scale-95 transition-all shrink-0"
+              className="text-[11px] font-bold text-[#4f46e5] hover:text-[#4338ca] px-2.5 py-1 rounded-lg bg-[#eeedfc] hover:bg-[#e0defa] border border-[#d7d4f9] flex items-center gap-1 active:scale-95 transition-all shrink-0"
             >
-              <Edit3 className="w-3 h-3 text-[#3b68ff]" />
+              <Edit3 className="w-3 h-3 text-[#4f46e5]" />
               <span>{isEditingSample ? 'Cerrar' : 'Modificar'}</span>
             </button>
           </div>
 
           <div className="pt-2 flex flex-col sm:flex-row sm:items-center justify-between gap-1">
-            <p className="font-black text-sm text-slate-900 leading-tight">
+            <p className="font-black text-sm text-[#2c2724] leading-tight">
               {gusto === 'OTRO' ? otroGusto : gusto}
             </p>
-            <p className="text-[11px] text-slate-500">
-              Evaluador: <span className="text-slate-800 font-semibold">{evaluador}</span> • {fecha} {hora}
+            <p className="text-[11px] text-[#7c746d]">
+              Evaluador: <span className="text-[#2c2724] font-semibold">{evaluador}</span> • {fecha} {hora}
             </p>
           </div>
         </div>
@@ -1228,10 +1228,10 @@ export const EvaluationForm: React.FC<EvaluationFormProps> = ({ onSavedSuccess, 
                   }}
                   className={`p-2 sm:p-2.5 rounded-xl border text-center transition-all flex flex-col items-center gap-1 ${
                     isActive
-                      ? 'bg-[#3b68ff] border-[#3b68ff] text-white shadow-sm'
+                      ? 'bg-[#4f46e5] border-[#4f46e5] text-white shadow-sm'
                       : isCompleted
-                      ? 'bg-blue-50 border-blue-200 text-[#3b68ff]'
-                      : 'bg-white border-slate-200 text-slate-400 hover:text-slate-600 hover:bg-slate-50'
+                      ? 'bg-[#eeedfc] border-[#d7d4f9] text-[#4f46e5]'
+                      : 'bg-[#fdfbf7] border-[#e2d9c8] text-[#7c746d] hover:text-[#2c2724] hover:bg-[#f5f0e6]'
                   }`}
                 >
                   <div className="flex items-center gap-1">
@@ -1250,37 +1250,37 @@ export const EvaluationForm: React.FC<EvaluationFormProps> = ({ onSavedSuccess, 
           </div>
 
           {/* Tarjeta Activa del Wizard */}
-          <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+          <div className="bg-[#fdfbf7] p-4 sm:p-5 rounded-2xl border border-[#e2d9c8] shadow-sm space-y-4">
             {/* Cabecera del Módulo */}
-            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+            <div className="flex items-center justify-between pb-3 border-b border-[#e2d9c8]">
               <div className="flex items-center gap-2">
-                <div className="w-7 h-7 rounded-lg bg-blue-50 flex items-center justify-center text-[#3b68ff]">
-                  {currentModule === 0 && <Eye className="w-4 h-4 text-[#3b68ff]" />}
-                  {currentModule === 1 && <Wind className="w-4 h-4 text-[#3b68ff]" />}
-                  {currentModule === 2 && <Smile className="w-4 h-4 text-[#3b68ff]" />}
-                  {currentModule === 3 && <Award className="w-4 h-4 text-[#3b68ff]" />}
+                <div className="w-7 h-7 rounded-lg bg-[#eeedfc] flex items-center justify-center text-[#4f46e5]">
+                  {currentModule === 0 && <Eye className="w-4 h-4 text-[#4f46e5]" />}
+                  {currentModule === 1 && <Wind className="w-4 h-4 text-[#4f46e5]" />}
+                  {currentModule === 2 && <Smile className="w-4 h-4 text-[#4f46e5]" />}
+                  {currentModule === 3 && <Award className="w-4 h-4 text-[#4f46e5]" />}
                 </div>
                 <div>
-                  <h2 className="text-xs sm:text-sm font-black uppercase tracking-wider text-slate-900">
+                  <h2 className="text-xs sm:text-sm font-black uppercase tracking-wider text-[#2c2724]">
                     {MODULES[currentModule].title}
                   </h2>
-                  <span className="text-[10px] text-slate-500">
+                  <span className="text-[10px] text-[#7c746d]">
                     {MODULES[currentModule].subtitle}
                   </span>
                 </div>
               </div>
 
               <div className="text-right">
-                <span className="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 border border-slate-200">
+                <span className="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full bg-[#f5f0e6] text-[#7c746d] border border-[#e2d9c8]">
                   {currentQuestion + 1} de {MODULES[currentModule].totalQuestions}
                 </span>
               </div>
             </div>
 
             {/* Barra de progreso de la pregunta en el módulo */}
-            <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
+            <div className="w-full h-1.5 bg-[#ede6d8] rounded-full overflow-hidden">
               <div
-                className="h-full bg-[#3b68ff] rounded-full transition-all duration-300"
+                className="h-full bg-[#4f46e5] rounded-full transition-all duration-300"
                 style={{
                   width: `${((currentQuestion + 1) / MODULES[currentModule].totalQuestions) * 100}%`
                 }}
@@ -1498,10 +1498,10 @@ export const EvaluationForm: React.FC<EvaluationFormProps> = ({ onSavedSuccess, 
                   {currentQuestion === 1 && (
                     <div className="space-y-4 animate-fade-in text-center py-2">
                       <div>
-                        <h3 className="text-xs sm:text-sm font-extrabold text-slate-900 leading-snug">
+                        <h3 className="text-xs sm:text-sm font-extrabold text-[#2c2724] leading-snug">
                           G2. ¿Cuánto te gusta en general?
                         </h3>
-                        <p className="text-[11px] text-slate-500 mt-0.5">
+                        <p className="text-[11px] text-[#7c746d] mt-0.5">
                           Asigná una calificación general de 1 a 5 estrellas
                         </p>
                       </div>
@@ -1518,14 +1518,14 @@ export const EvaluationForm: React.FC<EvaluationFormProps> = ({ onSavedSuccess, 
                               className={`w-9 h-9 sm:w-11 sm:h-11 transition-colors ${
                                 star <= g2_gustoGeneral
                                   ? 'fill-amber-400 text-amber-500 drop-shadow-sm'
-                                  : 'fill-slate-100 text-slate-300'
+                                  : 'fill-[#ede6d8] text-[#ded4c3]'
                               }`}
                             />
                           </button>
                         ))}
                       </div>
 
-                      <div className="inline-block px-4 py-1.5 rounded-full bg-amber-50 border border-amber-200 text-amber-800 font-extrabold text-xs">
+                      <div className="inline-block px-4 py-1.5 rounded-full bg-[#fef9ee] border border-[#fde68a] text-[#b45309] font-extrabold text-xs">
                         {g2_gustoGeneral} de 5 {g2_gustoGeneral === 5 ? '★ Excelente' : g2_gustoGeneral >= 4 ? '★ Muy Bueno' : '★ Aceptable'}
                       </div>
                     </div>
@@ -1534,10 +1534,10 @@ export const EvaluationForm: React.FC<EvaluationFormProps> = ({ onSavedSuccess, 
                   {currentQuestion === 2 && (
                     <div className="space-y-3.5 animate-fade-in">
                       <div>
-                        <h3 className="text-xs sm:text-sm font-extrabold text-slate-900 leading-snug">
+                        <h3 className="text-xs sm:text-sm font-extrabold text-[#2c2724] leading-snug">
                           G3. ¿Aprobarías este producto para despacho?
                         </h3>
-                        <p className="text-[11px] text-slate-500 mt-0.5">
+                        <p className="text-[11px] text-[#7c746d] mt-0.5">
                           Resolución final de calidad para liberar el lote
                         </p>
                       </div>
@@ -1560,12 +1560,12 @@ export const EvaluationForm: React.FC<EvaluationFormProps> = ({ onSavedSuccess, 
                                     ? 'bg-emerald-600 text-white border-emerald-600 shadow-sm'
                                     : item.id === 'Sí con observaciones'
                                     ? 'bg-amber-600 text-white border-amber-600 shadow-sm'
-                                    : 'bg-[#ff5757] text-white border-[#ff5757] shadow-sm'
-                                  : 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100'
+                                    : 'bg-[#eb5757] text-white border-[#eb5757] shadow-sm'
+                                  : 'bg-[#f5f0e6] border-[#e2d9c8] text-[#3d3630] hover:bg-[#ede6d8]'
                               }`}
                             >
                               <p className="font-extrabold text-xs">{item.label}</p>
-                              <p className={`text-[10px] mt-0.5 ${isSelected ? 'text-white/80' : 'text-slate-400'}`}>
+                              <p className={`text-[10px] mt-0.5 ${isSelected ? 'text-white/80' : 'text-[#7c746d]'}`}>
                                 {item.desc}
                               </p>
                             </button>
@@ -1586,10 +1586,10 @@ export const EvaluationForm: React.FC<EvaluationFormProps> = ({ onSavedSuccess, 
                   {currentQuestion === 4 && (
                     <div className="space-y-4 animate-fade-in">
                       <div>
-                        <h3 className="text-xs sm:text-sm font-extrabold text-slate-900 leading-snug">
+                        <h3 className="text-xs sm:text-sm font-extrabold text-[#2c2724] leading-snug">
                           Firma del Evaluador & Evidencias Fotográficas
                         </h3>
-                        <p className="text-[11px] text-slate-500 mt-0.5">
+                        <p className="text-[11px] text-[#7c746d] mt-0.5">
                           Firmá digitalmente para dar validez técnica a la evaluación INF-D003
                         </p>
                       </div>
@@ -1597,20 +1597,20 @@ export const EvaluationForm: React.FC<EvaluationFormProps> = ({ onSavedSuccess, 
                       {/* Firma digital */}
                       <div>
                         <div className="flex items-center justify-between mb-1.5">
-                          <span className="text-[11px] text-slate-700 font-bold">
+                          <span className="text-[11px] text-[#3d3630] font-bold">
                             Firma del Evaluador ({evaluador}):
                           </span>
                           {hasSignature && (
                             <button
                               type="button"
                               onClick={clearSignature}
-                              className="text-[10px] text-rose-600 font-bold hover:underline"
+                              className="text-[10px] text-[#eb5757] font-bold hover:underline"
                             >
                               Limpiar firma
                             </button>
                           )}
                         </div>
-                        <div className="rounded-xl border border-slate-300 bg-slate-50 overflow-hidden touch-none shadow-sm">
+                        <div className="rounded-xl border border-[#ded4c3] bg-[#f5f0e6] overflow-hidden touch-none shadow-sm">
                           <canvas
                             ref={canvasRef}
                             width={380}
@@ -1621,19 +1621,19 @@ export const EvaluationForm: React.FC<EvaluationFormProps> = ({ onSavedSuccess, 
                             onTouchStart={startDrawing}
                             onTouchEnd={stopDrawing}
                             onTouchMove={draw}
-                            className="w-full h-[110px] cursor-crosshair bg-slate-50"
+                            className="w-full h-[110px] cursor-crosshair bg-[#f5f0e6]"
                           />
                         </div>
                       </div>
 
                       {/* Fotos de la Muestra */}
                       <div className="pt-2">
-                        <span className="text-[11px] text-slate-700 font-bold block mb-1.5">
+                        <span className="text-[11px] text-[#3d3630] font-bold block mb-1.5">
                           Fotos de la muestra cortada (opcional):
                         </span>
                         <div className="flex flex-wrap items-center gap-2.5">
-                          <label className="flex flex-col items-center justify-center w-20 h-20 rounded-xl border-2 border-dashed border-slate-300 hover:border-[#3b68ff] bg-slate-50 hover:bg-slate-100 text-[#3b68ff] cursor-pointer active:scale-95 transition-all shadow-sm">
-                            <Camera className="w-5 h-5 mb-1 text-[#3b68ff]" />
+                          <label className="flex flex-col items-center justify-center w-20 h-20 rounded-xl border-2 border-dashed border-[#ded4c3] hover:border-[#4f46e5] bg-[#f5f0e6] hover:bg-[#ede6d8] text-[#4f46e5] cursor-pointer active:scale-95 transition-all shadow-sm">
+                            <Camera className="w-5 h-5 mb-1 text-[#4f46e5]" />
                             <span className="text-[9.5px] font-bold">Subir</span>
                             <input
                               type="file"
@@ -1645,12 +1645,12 @@ export const EvaluationForm: React.FC<EvaluationFormProps> = ({ onSavedSuccess, 
                           </label>
 
                           {photos.map((src, idx) => (
-                            <div key={idx} className="relative w-20 h-20 rounded-xl overflow-hidden group border border-slate-200 shadow-sm">
+                            <div key={idx} className="relative w-20 h-20 rounded-xl overflow-hidden group border border-[#e2d9c8] shadow-sm">
                               <img src={src} alt={`Evidencia ${idx}`} className="w-full h-full object-cover" />
                               <button
                                 type="button"
                                 onClick={() => removePhoto(idx)}
-                                className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex items-center justify-center text-rose-400 transition-opacity"
+                                className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex items-center justify-center text-[#eb5757] transition-opacity"
                               >
                                 <Trash2 className="w-4 h-4" />
                               </button>
@@ -1665,13 +1665,13 @@ export const EvaluationForm: React.FC<EvaluationFormProps> = ({ onSavedSuccess, 
             </div>
 
             {/* Barra de Navegación del Wizard */}
-            <div className="pt-4 border-t border-slate-100 flex items-center justify-between gap-2">
+            <div className="pt-4 border-t border-[#e2d9c8] flex items-center justify-between gap-2">
               {/* Botón Anterior */}
               <button
                 type="button"
                 onClick={handlePrevStep}
                 disabled={currentModule === 0 && currentQuestion === 0}
-                className="px-3.5 py-2.5 rounded-xl border border-slate-200 text-slate-700 bg-slate-50 hover:bg-slate-100 text-xs font-bold flex items-center gap-1.5 disabled:opacity-30 disabled:pointer-events-none active:scale-95 transition-all"
+                className="px-3.5 py-2.5 rounded-xl border border-[#e2d9c8] text-[#4a423b] bg-[#f5f0e6] hover:bg-[#ede6d8] text-xs font-bold flex items-center gap-1.5 disabled:opacity-30 disabled:pointer-events-none active:scale-95 transition-all"
               >
                 <ArrowLeft className="w-4 h-4" />
                 <span>Anterior</span>
@@ -1683,7 +1683,7 @@ export const EvaluationForm: React.FC<EvaluationFormProps> = ({ onSavedSuccess, 
                   type="button"
                   onClick={handleSubmit}
                   disabled={saving || isAnalyzing}
-                  className="flex-1 py-3 px-4 rounded-xl bg-[#3b68ff] hover:bg-[#2563eb] text-white font-extrabold text-xs tracking-wider uppercase shadow-md shadow-[#3b68ff]/25 active:scale-[0.98] transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+                  className="flex-1 py-3 px-4 rounded-xl bg-[#4f46e5] hover:bg-[#4338ca] text-white font-extrabold text-xs tracking-wider uppercase shadow-md shadow-[#4f46e5]/25 active:scale-[0.98] transition-all flex items-center justify-center gap-2 disabled:opacity-50"
                 >
                   <Save className="w-4 h-4" />
                   <span>Guardar Evaluación Sensorial (INF-D003)</span>
@@ -1692,7 +1692,7 @@ export const EvaluationForm: React.FC<EvaluationFormProps> = ({ onSavedSuccess, 
                 <button
                   type="button"
                   onClick={handleNextStep}
-                  className="flex-1 py-3 px-4 rounded-xl bg-[#3b68ff] hover:bg-[#2563eb] text-white font-extrabold text-xs tracking-wider uppercase shadow-md shadow-[#3b68ff]/25 active:scale-[0.98] transition-all flex items-center justify-center gap-2 group"
+                  className="flex-1 py-3 px-4 rounded-xl bg-[#4f46e5] hover:bg-[#4338ca] text-white font-extrabold text-xs tracking-wider uppercase shadow-md shadow-[#4f46e5]/25 active:scale-[0.98] transition-all flex items-center justify-center gap-2 group"
                 >
                   <span>Siguiente Módulo: {MODULES[currentModule + 1].name}</span>
                   <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
@@ -1701,7 +1701,7 @@ export const EvaluationForm: React.FC<EvaluationFormProps> = ({ onSavedSuccess, 
                 <button
                   type="button"
                   onClick={handleNextStep}
-                  className="flex-1 py-3 px-4 rounded-xl bg-[#3b68ff] hover:bg-[#2563eb] text-white font-extrabold text-xs tracking-wider uppercase shadow-md shadow-[#3b68ff]/25 active:scale-[0.98] transition-all flex items-center justify-center gap-2 group"
+                  className="flex-1 py-3 px-4 rounded-xl bg-[#4f46e5] hover:bg-[#4338ca] text-white font-extrabold text-xs tracking-wider uppercase shadow-md shadow-[#4f46e5]/25 active:scale-[0.98] transition-all flex items-center justify-center gap-2 group"
                 >
                   <span>Siguiente</span>
                   <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
@@ -1716,24 +1716,24 @@ export const EvaluationForm: React.FC<EvaluationFormProps> = ({ onSavedSuccess, 
           PANTALLA DE CARGA / ANÁLISIS SENSORIAL (5 SEGUNDOS)
           ========================================================================= */}
       {isAnalyzing && (
-        <div className="fixed inset-0 z-50 bg-slate-900/80 backdrop-blur-md flex items-center justify-center p-4 animate-fade-in">
-          <div className="bg-white rounded-3xl p-6 sm:p-8 max-w-md w-full border border-slate-200 shadow-2xl text-center space-y-6">
+        <div className="fixed inset-0 z-50 bg-[#1c1815]/80 backdrop-blur-md flex items-center justify-center p-4 animate-fade-in">
+          <div className="bg-[#fdfbf7] rounded-3xl p-6 sm:p-8 max-w-md w-full border border-[#e2d9c8] shadow-2xl text-center space-y-6">
             <div className="relative w-24 h-24 mx-auto flex items-center justify-center">
-              <div className="absolute inset-0 rounded-full bg-blue-100 animate-ping opacity-60" />
-              <div className="absolute inset-2 rounded-full bg-blue-50 border-2 border-[#3b68ff]/30 animate-pulse" />
-              <div className="relative w-16 h-16 rounded-2xl bg-[#3b68ff] text-white flex items-center justify-center shadow-lg shadow-[#3b68ff]/30">
+              <div className="absolute inset-0 rounded-full bg-[#eeedfc] animate-ping opacity-60" />
+              <div className="absolute inset-2 rounded-full bg-[#f5f0e6] border-2 border-[#4f46e5]/30 animate-pulse" />
+              <div className="relative w-16 h-16 rounded-2xl bg-[#4f46e5] text-white flex items-center justify-center shadow-lg shadow-[#4f46e5]/30">
                 <Sparkles className="w-8 h-8 animate-spin" style={{ animationDuration: '3s' }} />
               </div>
             </div>
 
             <div>
-              <span className="text-[10px] font-black uppercase tracking-widest text-[#3b68ff] bg-blue-50 px-3 py-1 rounded-full border border-blue-200">
+              <span className="text-[10px] font-black uppercase tracking-widest text-[#4f46e5] bg-[#eeedfc] px-3 py-1 rounded-full border border-[#d7d4f9]">
                 Control de Calidad Mi Gusto
               </span>
-              <h3 className="text-lg sm:text-xl font-black text-slate-900 mt-3">
+              <h3 className="text-lg sm:text-xl font-black text-[#2c2724] mt-3">
                 Analizando Evaluación Sensorial
               </h3>
-              <p className="text-xs text-slate-500 mt-1">
+              <p className="text-xs text-[#7c746d] mt-1">
                 Procesando parámetros organolépticos según protocolo INF-D003...
               </p>
             </div>
@@ -1741,22 +1741,22 @@ export const EvaluationForm: React.FC<EvaluationFormProps> = ({ onSavedSuccess, 
             {/* Etapa actual y Barra de Progreso */}
             <div className="space-y-2">
               <div className="flex justify-between items-center text-xs font-bold">
-                <span className="text-slate-700 truncate max-w-[240px] text-left">
+                <span className="text-[#3d3630] truncate max-w-[240px] text-left">
                   {analysisStageText}
                 </span>
-                <span className="text-[#3b68ff] font-mono">{analysisProgress}%</span>
+                <span className="text-[#4f46e5] font-mono">{analysisProgress}%</span>
               </div>
-              <div className="w-full h-3 rounded-full bg-slate-100 overflow-hidden border border-slate-200">
+              <div className="w-full h-3 rounded-full bg-[#ede6d8] overflow-hidden border border-[#ded4c3]">
                 <div
-                  className="h-full bg-gradient-to-r from-[#3b68ff] to-[#2563eb] rounded-full transition-all duration-100 ease-out"
+                  className="h-full bg-gradient-to-r from-[#4f46e5] to-[#4338ca] rounded-full transition-all duration-100 ease-out"
                   style={{ width: `${analysisProgress}%` }}
                 />
               </div>
             </div>
 
-            <div className="pt-2 text-[11px] text-slate-400 border-t border-slate-100 flex items-center justify-center gap-1.5">
+            <div className="pt-2 text-[11px] text-[#7c746d] border-t border-[#e2d9c8] flex items-center justify-center gap-1.5">
               <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-              <span>Auditando muestra: <strong className="text-slate-700">{loteBatea}</strong></span>
+              <span>Auditando muestra: <strong className="text-[#2c2724]">{loteBatea}</strong></span>
             </div>
           </div>
         </div>
@@ -1766,7 +1766,7 @@ export const EvaluationForm: React.FC<EvaluationFormProps> = ({ onSavedSuccess, 
           MENSAJE PERSONALIZADO DE AGRADECIMIENTO TRAS EL ANÁLISIS
           ========================================================================= */}
       {showThankYou && (
-        <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-md text-center space-y-6 animate-slide-down">
+        <div className="bg-[#fdfbf7] rounded-3xl p-6 sm:p-8 border border-[#e2d9c8] shadow-md text-center space-y-6 animate-slide-down">
           <div className="w-20 h-20 mx-auto rounded-3xl bg-emerald-50 border-2 border-emerald-200 flex items-center justify-center text-emerald-600 shadow-inner">
             <CheckCircle2 className="w-10 h-10 stroke-[2.5]" />
           </div>
@@ -1775,38 +1775,38 @@ export const EvaluationForm: React.FC<EvaluationFormProps> = ({ onSavedSuccess, 
             <span className="text-[10px] font-black uppercase tracking-wider text-emerald-600 bg-emerald-50 px-3 py-1 rounded-full border border-emerald-200">
               Evaluación Registrada con Éxito
             </span>
-            <h2 className="text-xl sm:text-2xl font-black text-slate-900 mt-3">
+            <h2 className="text-xl sm:text-2xl font-black text-[#2c2724] mt-3">
               ¡Muchas gracias, {evaluador}!
             </h2>
-            <p className="text-xs sm:text-sm text-slate-600 mt-2 leading-relaxed max-w-md mx-auto">
-              Tu evaluación sensorial ha sido analizada e incorporada al sistema de Control de Calidad de Mi Gusto bajo el protocolo oficial <strong className="text-slate-900">INF-D003</strong>.
+            <p className="text-xs sm:text-sm text-[#4a423b] mt-2 leading-relaxed max-w-md mx-auto">
+              Tu evaluación sensorial ha sido analizada e incorporada al sistema de Control de Calidad de Mi Gusto bajo el protocolo oficial <strong className="text-[#2c2724]">INF-D003</strong>.
             </p>
           </div>
 
           {/* Resumen de la evaluación */}
-          <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 text-left space-y-2.5 text-xs">
-            <div className="flex items-center justify-between pb-2 border-b border-slate-200">
-              <span className="text-slate-500">Gusto evaluado:</span>
-              <span className="font-bold text-slate-900">{gusto === 'OTRO' ? otroGusto : gusto}</span>
+          <div className="p-4 rounded-2xl bg-[#f5f0e6] border border-[#e2d9c8] text-left space-y-2.5 text-xs">
+            <div className="flex items-center justify-between pb-2 border-b border-[#ded4c3]">
+              <span className="text-[#7c746d]">Gusto evaluado:</span>
+              <span className="font-bold text-[#2c2724]">{gusto === 'OTRO' ? otroGusto : gusto}</span>
             </div>
-            <div className="flex items-center justify-between pb-2 border-b border-slate-200">
-              <span className="text-slate-500">Lote / Batea:</span>
-              <span className="font-mono font-bold text-slate-900">{loteBatea}</span>
+            <div className="flex items-center justify-between pb-2 border-b border-[#ded4c3]">
+              <span className="text-[#7c746d]">Lote / Batea:</span>
+              <span className="font-mono font-bold text-[#2c2724]">{loteBatea}</span>
             </div>
-            <div className="flex items-center justify-between pb-2 border-b border-slate-200">
-              <span className="text-slate-500">Dictamen final:</span>
+            <div className="flex items-center justify-between pb-2 border-b border-[#ded4c3]">
+              <span className="text-[#7c746d]">Dictamen final:</span>
               <span className={`font-bold px-2 py-0.5 rounded text-[11px] ${
                 g3_aprobacion === 'Sí'
                   ? 'bg-emerald-100 text-emerald-800'
                   : g3_aprobacion === 'Sí con observaciones'
                   ? 'bg-amber-100 text-amber-800'
-                  : 'bg-rose-100 text-rose-800'
+                  : 'bg-[#fdf2f2] text-[#eb5757] border border-[#fecaca]'
               }`}>
                 {g3_aprobacion === 'Sí' ? 'Aprobado' : g3_aprobacion === 'Sí con observaciones' ? 'Aprobado c/ Obs.' : 'Rechazado'}
               </span>
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-slate-500">Puntaje global:</span>
+              <span className="text-[#7c746d]">Puntaje global:</span>
               <span className="font-bold text-amber-600 flex items-center gap-1">
                 {g2_gustoGeneral} de 5 <Star className="w-3.5 h-3.5 fill-amber-500 text-amber-500" />
               </span>
@@ -1816,7 +1816,7 @@ export const EvaluationForm: React.FC<EvaluationFormProps> = ({ onSavedSuccess, 
           <button
             type="button"
             onClick={handleResetForNewEvaluation}
-            className="w-full py-4 px-6 rounded-2xl bg-[#3b68ff] hover:bg-[#2563eb] text-white font-extrabold text-xs uppercase tracking-wider shadow-md shadow-[#3b68ff]/25 active:scale-[0.98] transition-all flex items-center justify-center gap-2"
+            className="w-full py-4 px-6 rounded-2xl bg-[#4f46e5] hover:bg-[#4338ca] text-white font-extrabold text-xs uppercase tracking-wider shadow-md shadow-[#4f46e5]/25 active:scale-[0.98] transition-all flex items-center justify-center gap-2"
           >
             <RotateCcw className="w-4 h-4" />
             <span>Realizar Nueva Evaluación</span>
@@ -1826,8 +1826,8 @@ export const EvaluationForm: React.FC<EvaluationFormProps> = ({ onSavedSuccess, 
       </div>
 
       {/* Footer Sutil - Siempre al pie del viewport */}
-      <footer className="mt-auto pt-8 pb-3 border-t border-slate-200 text-center">
-        <p className="text-[10px] sm:text-[11px] text-slate-500 font-medium tracking-wide">
+      <footer className="mt-auto pt-8 pb-3 border-t border-[#e2d9c8] text-center">
+        <p className="text-[10px] sm:text-[11px] text-[#7c746d] font-medium tracking-wide">
           © Desarrollado por el Departamento de Sistemas de Mi Gusto | Todos los derechos reservados.
         </p>
       </footer>

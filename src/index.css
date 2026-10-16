@@ -4,35 +4,35 @@
 
 @layer base {
   body {
-    @apply bg-[#f4f6f8] text-slate-800 antialiased selection:bg-[#3b68ff] selection:text-white min-h-screen font-sans;
+    @apply bg-[#f5f0e6] text-[#2c2724] antialiased selection:bg-[#4f46e5] selection:text-white min-h-screen font-sans;
     -webkit-tap-highlight-color: transparent;
   }
 }
 
-/* Solid Brand Palette (Clean White Surfaces, Royal Blue, Coral Red, Solid Borders) */
+/* Brand Palette (Warm Beige Surfaces, Violet-Blue, Coral Red, Warm Stone Borders) */
 .glass-panel {
-  background-color: #ffffff;
-  border: 1px solid #e2e8f0;
-  box-shadow: 0 2px 6px -1px rgba(15, 23, 42, 0.06), 0 1px 3px -1px rgba(15, 23, 42, 0.04);
+  background-color: #fdfbf7;
+  border: 1px solid #e2d9c8;
+  box-shadow: 0 2px 6px -1px rgba(44, 39, 36, 0.05), 0 1px 3px -1px rgba(44, 39, 36, 0.03);
 }
 
 .glass-card {
-  background-color: #f8fafc;
-  border: 1px solid #e2e8f0;
-  box-shadow: 0 1px 3px 0 rgba(15, 23, 42, 0.04);
+  background-color: #f3ede2;
+  border: 1px solid #e2d9c8;
+  box-shadow: 0 1px 3px 0 rgba(44, 39, 36, 0.04);
 }
 
 .glass-input {
-  background-color: #ffffff;
-  border: 1px solid #cbd5e1;
-  color: #0f172a;
+  background-color: #fdfbf7;
+  border: 1px solid #ded4c3;
+  color: #2c2724;
   transition: all 0.15s ease-in-out;
 }
 
 .glass-input:focus {
-  border-color: #3b68ff;
+  border-color: #4f46e5;
   background-color: #ffffff;
-  box-shadow: 0 0 0 2px rgba(59, 104, 255, 0.2);
+  box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.2);
   outline: none;
 }
 
