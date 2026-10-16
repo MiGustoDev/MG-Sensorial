@@ -639,11 +639,25 @@ export const EvaluationForm: React.FC<EvaluationFormProps> = ({ onSavedSuccess, 
 
       <div>
         <textarea
-          rows={3}
+          rows={2}
           value={value}
-          onChange={e => onChange(e.target.value)}
+          onChange={e => {
+            onChange(e.target.value);
+            e.currentTarget.style.height = 'auto';
+            e.currentTarget.style.height = `${Math.max(e.currentTarget.scrollHeight, 68)}px`;
+          }}
+          onInput={e => {
+            e.currentTarget.style.height = 'auto';
+            e.currentTarget.style.height = `${Math.max(e.currentTarget.scrollHeight, 68)}px`;
+          }}
+          ref={el => {
+            if (el) {
+              el.style.height = 'auto';
+              el.style.height = `${Math.max(el.scrollHeight, 68)}px`;
+            }
+          }}
           placeholder={placeholder}
-          className="w-full p-3 rounded-xl bg-[#fdfbf7] border border-[#ded4c3] text-xs sm:text-sm text-[#2c2724] placeholder-[#a69c91] focus:bg-white focus:border-[#4f46e5] focus:ring-1 focus:ring-[#4f46e5] resize-none transition-all shadow-inner"
+          className="w-full p-3 rounded-xl bg-[#fdfbf7] border border-[#ded4c3] text-xs sm:text-sm text-[#2c2724] placeholder-[#a69c91] focus:bg-white focus:border-[#4f46e5] focus:ring-1 focus:ring-[#4f46e5] resize-none overflow-hidden transition-all shadow-inner"
         />
         <p className="text-[10px] text-[#8e857b] mt-1 text-right">
           Opcional • Dejá en blanco si la muestra cumple el estándar
@@ -663,17 +677,17 @@ export const EvaluationForm: React.FC<EvaluationFormProps> = ({ onSavedSuccess, 
           <div className="p-4 rounded-2xl bg-[#fdfbf7] border border-[#e2d9c8] shadow-sm relative overflow-hidden">
             <div className="flex items-center justify-between border-b border-[#ebe3d5] pb-2.5 mb-3">
               <div className="flex items-center gap-2.5">
-                <div className="w-2.5 h-2.5 rounded-full bg-[#4f46e5]" />
+                <div className="w-2.5 h-2.5 rounded-full bg-[#5969E6]" />
                 <span className="text-sm font-extrabold tracking-tight text-[#2c2724] uppercase">
                   Control de Calidad
                 </span>
-                <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-md bg-[#f3ede2] text-[#4f46e5] border border-[#e2d9c8]">
+                <span className="text-[10px] font-mono font-black px-2 py-0.5 rounded-full bg-[#5969E6] text-white shadow-sm">
                   INF-D003
                 </span>
               </div>
               <div className="flex items-center gap-2 text-right">
                 <span className="text-[10px] font-mono text-[#8e857b]">V2.0</span>
-                <span className="text-[10px] font-mono text-[#4f46e5] font-bold px-1.5 py-0.5 rounded bg-[#eeedfc] border border-[#d7d4f9]">
+                <span className="text-[10px] font-mono font-black px-2 py-0.5 rounded-full bg-[#5969E6] text-white shadow-sm">
                   2026
                 </span>
               </div>
@@ -1150,13 +1164,13 @@ export const EvaluationForm: React.FC<EvaluationFormProps> = ({ onSavedSuccess, 
           </div>
 
           {/* Botón de confirmación para desplegar la evaluación */}
-          <div className="pt-2">
+          <div className="pt-2 flex justify-center">
             <button
               type="button"
               onClick={handleUnlockEvaluation}
-              className="w-full py-3.5 px-4 rounded-xl bg-[#4f46e5] hover:bg-[#4338ca] text-white font-extrabold text-xs tracking-wider uppercase shadow-md shadow-[#4f46e5]/20 active:scale-[0.98] transition-all flex items-center justify-center gap-2 group"
+              className="w-auto py-3 px-6 rounded-xl bg-[#4f46e5] hover:bg-[#4338ca] text-white font-extrabold text-xs tracking-wider uppercase shadow-md shadow-[#4f46e5]/20 active:scale-[0.98] transition-all inline-flex items-center justify-center gap-2 group"
             >
-              <span>{isEvaluationUnlocked ? 'Confirmar Datos de Muestra' : 'Comenzar Evaluación Sensorial'}</span>
+              <span>{isEvaluationUnlocked ? 'Confirmar Datos' : 'Comenzar sensorial'}</span>
               <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
             </button>
           </div>
