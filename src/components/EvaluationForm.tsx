@@ -13,6 +13,7 @@ import {
   Smile,
   Award,
   ArrowRight,
+  RotateCcw,
   ClipboardList,
   User,
   Layers,
@@ -33,6 +34,14 @@ interface EvaluationFormProps {
 }
 
 export const EvaluationForm: React.FC<EvaluationFormProps> = ({ onSavedSuccess }) => {
+  // Helper para iniciales del evaluador
+  const getInitials = (name: string) => {
+    if (!name.trim()) return 'MG';
+    const parts = name.trim().split(/\s+/);
+    if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+    return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+  };
+
   // Estado de despliegue del flujo en 2 pasos
   const [isEvaluationUnlocked, setIsEvaluationUnlocked] = useState(false);
   const [isEditingSample, setIsEditingSample] = useState(false);
@@ -46,6 +55,7 @@ export const EvaluationForm: React.FC<EvaluationFormProps> = ({ onSavedSuccess }
   const [analysisProgress, setAnalysisProgress] = useState(0);
   const [analysisStageText, setAnalysisStageText] = useState('Iniciando auditoría sensorial...');
   const [showThankYou, setShowThankYou] = useState(false);
+  const [submittedSignature, setSubmittedSignature] = useState<string>('');
 
   // Encabezado / Formulario de Muestra
   const [fecha, setFecha] = useState(() => new Date().toISOString().split('T')[0]);
@@ -289,6 +299,60 @@ export const EvaluationForm: React.FC<EvaluationFormProps> = ({ onSavedSuccess }
     }, 100);
   };
 
+  const handleResetForNewEvaluation = () => {
+    setShowThankYou(false);
+    setIsAnalyzing(false);
+    setSuccessSaved(false);
+    setIsEvaluationUnlocked(false);
+    setIsEditingSample(false);
+    setCurrentModule(0);
+    setCurrentQuestion(0);
+    setSubmittedSignature('');
+    setLoteBatea('');
+    setCodigoMuestra('');
+    setPhotos([]);
+    clearSignature();
+
+    const now = new Date();
+    setHora(`${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`);
+
+    setV1_color('Sí');
+    setV2_cantidad('Justo');
+    setV3_mezclado('Parejo');
+    setV4_ingredientesReceta('Sí');
+    setV5_ingredienteExtrano('No');
+    setV6_selladoCarne('Dorada y jugosa');
+    setV7_rehogadoVegetales('Justo');
+    setV8_caramelizacion('Justa');
+    setObs_vista('');
+
+    setO1_intensidadAroma('Justa');
+    setO2_aromaCaracteristico('Sí');
+    setO3_olorExtrano(['No']);
+    setObs_olfato('');
+
+    setB1_primerImpacto(['Carne / proteína']);
+    setB2_texturaMasa('Tierna');
+    setB3_jugosidadRelleno('Jugoso');
+    setB4_texturaCarne('Tierna');
+    setB5_sal('Justa');
+    setB6_dulce('Justo');
+    setB7_picante('No debería picar');
+    setB8_saborCaracteristico('Justo');
+    setB9_ingredienteTapa('No');
+    setB10_saborExtrano(['No']);
+    setB11_retrogusto('Agradable');
+    setObs_boca('');
+
+    setG1_estandarGusto('Igual');
+    setG2_gustoGeneral(1);
+    setG3_aprobacion('Sí');
+    setObs_global('');
+
+    setErrorMessage(null);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   const handleSubmit = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     setErrorMessage(null);
@@ -311,6 +375,7 @@ export const EvaluationForm: React.FC<EvaluationFormProps> = ({ onSavedSuccess }
     if (hasSignature && canvasRef.current) {
       firmaData = canvasRef.current.toDataURL('image/png');
     }
+    setSubmittedSignature(firmaData);
 
     const payload: SensorialFormAnswers = {
       fecha,
@@ -1026,16 +1091,16 @@ export const EvaluationForm: React.FC<EvaluationFormProps> = ({ onSavedSuccess }
                     setIsDatePickerOpen(false);
                     setIsTimePickerOpen(false);
                   }}
-                  className="w-full px-3 py-2.5 rounded-xl glass-input text-left text-xs text-[#2c2724] font-semibold flex items-center justify-between active:scale-[0.99] transition-all hover:border-[#4f46e5]"
+                  className="w-full px-3.5 py-3 rounded-xl glass-input text-left text-base sm:text-sm text-[#2c2724] font-semibold flex items-center justify-between active:scale-[0.99] transition-all hover:border-[#4f46e5] min-h-[46px] leading-normal"
                 >
-                  <span className="truncate">
+                  <span className="truncate py-1 leading-normal block flex-1">
                     {gusto === 'OTRO' ? (
                       <span className="text-[#eb5757] font-bold">⭐ {otroGusto.trim() || 'OTRO / DESARROLLO'}</span>
                     ) : (
                       gusto
                     )}
                   </span>
-                  <ChevronDown className={`w-4 h-4 text-[#4f46e5] transition-transform duration-200 shrink-0 ${isGustoDropdownOpen ? 'rotate-180' : ''}`} />
+                  <ChevronDown className={`w-4 h-4 text-[#4f46e5] transition-transform duration-200 shrink-0 ml-2 ${isGustoDropdownOpen ? 'rotate-180' : ''}`} />
                 </button>
 
                 {isGustoDropdownOpen && (
@@ -1177,7 +1242,6 @@ export const EvaluationForm: React.FC<EvaluationFormProps> = ({ onSavedSuccess }
             {MODULES.map((mod, idx) => {
               const ModIcon = mod.icon;
               const isActive = currentModule === idx;
-              const isCompleted = currentModule > idx;
 
               return (
                 <button
@@ -1190,17 +1254,11 @@ export const EvaluationForm: React.FC<EvaluationFormProps> = ({ onSavedSuccess }
                   className={`p-2 sm:p-2.5 rounded-xl border text-center transition-all flex flex-col items-center gap-1 ${
                     isActive
                       ? 'bg-[#4f46e5] border-[#4f46e5] text-white shadow-sm'
-                      : isCompleted
-                      ? 'bg-[#eeedfc] border-[#d7d4f9] text-[#4f46e5]'
                       : 'bg-[#fdfbf7] border-[#e2d9c8] text-[#7c746d] hover:text-[#2c2724] hover:bg-[#f5f0e6]'
                   }`}
                 >
                   <div className="flex items-center gap-1">
-                    {isCompleted ? (
-                      <Check className="w-3.5 h-3.5 stroke-[2.5]" />
-                    ) : (
-                      <ModIcon className="w-3.5 h-3.5" />
-                    )}
+                    <ModIcon className="w-3.5 h-3.5" />
                   </div>
                   <span className="text-[10px] sm:text-[11px] font-extrabold tracking-tight truncate w-full">
                     {mod.name}
@@ -1213,26 +1271,26 @@ export const EvaluationForm: React.FC<EvaluationFormProps> = ({ onSavedSuccess }
           {/* Tarjeta Activa del Wizard */}
           <div className="bg-[#fdfbf7] p-4 sm:p-5 rounded-2xl border border-[#e2d9c8] shadow-sm space-y-4">
             {/* Cabecera del Módulo */}
-            <div className="flex items-center justify-between pb-3 border-b border-[#e2d9c8]">
-              <div className="flex items-center gap-2">
-                <div className="w-7 h-7 rounded-lg bg-[#eeedfc] flex items-center justify-center text-[#4f46e5]">
+            <div className="flex items-center justify-between pb-3 border-b border-[#e2d9c8] gap-2">
+              <div className="flex items-center gap-2 min-w-0 pr-1">
+                <div className="w-7 h-7 rounded-lg bg-[#eeedfc] flex items-center justify-center text-[#4f46e5] shrink-0">
                   {currentModule === 0 && <Eye className="w-4 h-4 text-[#4f46e5]" />}
                   {currentModule === 1 && <Wind className="w-4 h-4 text-[#4f46e5]" />}
                   {currentModule === 2 && <Smile className="w-4 h-4 text-[#4f46e5]" />}
                   {currentModule === 3 && <Award className="w-4 h-4 text-[#4f46e5]" />}
                 </div>
-                <div>
-                  <h2 className="text-xs sm:text-sm font-black uppercase tracking-wider text-[#2c2724]">
+                <div className="min-w-0">
+                  <h2 className="text-xs sm:text-sm font-black uppercase tracking-wider text-[#2c2724] truncate">
                     {MODULES[currentModule].title}
                   </h2>
-                  <span className="text-[10px] text-[#7c746d]">
+                  <span className="text-[10px] text-[#7c746d] block truncate">
                     {MODULES[currentModule].subtitle}
                   </span>
                 </div>
               </div>
 
-              <div className="text-right">
-                <span className="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full bg-[#f5f0e6] text-[#7c746d] border border-[#e2d9c8]">
+              <div className="text-right shrink-0">
+                <span className="text-[10px] font-extrabold uppercase px-2.5 py-1 rounded-full bg-[#f5f0e6] text-[#7c746d] border border-[#e2d9c8] whitespace-nowrap inline-block">
                   {currentQuestion + 1} de {MODULES[currentModule].totalQuestions}
                 </span>
               </div>
@@ -1738,8 +1796,25 @@ export const EvaluationForm: React.FC<EvaluationFormProps> = ({ onSavedSuccess }
           ========================================================================= */}
       {showThankYou && (
         <div className="bg-[#fdfbf7] rounded-3xl p-6 sm:p-8 border border-[#e2d9c8] shadow-md text-center space-y-6 animate-slide-down">
-          <div className="w-20 h-20 mx-auto rounded-3xl bg-emerald-50 border-2 border-emerald-200 flex items-center justify-center text-emerald-600 shadow-inner">
-            <CheckCircle2 className="w-10 h-10 stroke-[2.5]" />
+          {/* Avatar del Evaluador (Foto o Iniciales) con tilde circular en esquina superior derecha */}
+          <div className="relative w-20 h-20 mx-auto">
+            <div className="w-20 h-20 rounded-3xl overflow-hidden bg-[#eeedfc] border-2 border-[#5969E6]/30 flex items-center justify-center shadow-md">
+              {photos.length > 0 ? (
+                <img
+                  src={photos[0]}
+                  alt="Foto de la evaluación"
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <span className="text-2xl font-black text-[#5969E6] tracking-wider select-none">
+                  {getInitials(evaluador)}
+                </span>
+              )}
+            </div>
+            {/* Tilde circular pequeño en la esquina superior derecha */}
+            <div className="absolute -top-1.5 -right-1.5 w-6 h-6 rounded-full bg-emerald-500 border-2 border-[#fdfbf7] flex items-center justify-center text-white shadow-sm">
+              <Check className="w-3.5 h-3.5 stroke-[3]" />
+            </div>
           </div>
 
           <div>
@@ -1754,7 +1829,7 @@ export const EvaluationForm: React.FC<EvaluationFormProps> = ({ onSavedSuccess }
             </p>
           </div>
 
-          {/* Resumen de la evaluación */}
+          {/* Resumen de la evaluación con firma en la esquina inferior derecha */}
           <div className="p-4 rounded-2xl bg-[#f5f0e6] border border-[#e2d9c8] text-left space-y-2.5 text-xs">
             <div className="flex items-center justify-between pb-2 border-b border-[#ded4c3]">
               <span className="text-[#7c746d]">Gusto evaluado:</span>
@@ -1782,6 +1857,32 @@ export const EvaluationForm: React.FC<EvaluationFormProps> = ({ onSavedSuccess }
                 {g2_gustoGeneral} de 5 <Star className="w-3.5 h-3.5 fill-amber-500 text-amber-500" />
               </span>
             </div>
+
+            {/* Firma sutil en la parte inferior derecha */}
+            {submittedSignature && (
+              <div className="pt-2.5 mt-2.5 border-t border-[#ded4c3] flex items-center justify-between">
+                <span className="text-[11px] text-[#7c746d] font-semibold">Firma registrada:</span>
+                <div className="bg-[#fdfbf7] px-2 py-1 rounded-lg border border-[#e2d9c8] shadow-2xs">
+                  <img
+                    src={submittedSignature}
+                    alt="Firma del evaluador"
+                    className="h-8 max-w-[120px] object-contain opacity-85"
+                  />
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Botón para volver a realizar otra evaluación */}
+          <div className="pt-2 flex justify-center">
+            <button
+              type="button"
+              onClick={handleResetForNewEvaluation}
+              className="w-auto py-3 px-6 rounded-2xl bg-[#4f46e5] hover:bg-[#4338ca] text-white font-extrabold text-xs uppercase tracking-wider shadow-md shadow-[#4f46e5]/25 active:scale-[0.98] transition-all inline-flex items-center justify-center gap-2 group"
+            >
+              <RotateCcw className="w-4 h-4 transition-transform group-hover:-rotate-90 duration-300" />
+              <span>Realizar Nueva Evaluación</span>
+            </button>
           </div>
         </div>
       )}
