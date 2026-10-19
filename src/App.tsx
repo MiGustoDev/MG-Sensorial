@@ -1,11 +1,13 @@
 import { useState, useEffect, useCallback } from 'react';
 import { EvaluationForm } from './components/EvaluationForm';
+import { SimpleEvaluationForm } from './components/SimpleEvaluationForm';
 import { AdminDashboard } from './components/AdminDashboard';
 import { AuthModal } from './components/AuthModal';
-import { QrCode } from 'lucide-react';
+import { QrCode, FileText, SlidersHorizontal } from 'lucide-react';
 
 export function App() {
   const [view, setView] = useState<'form' | 'admin'>('form');
+  const [evaluationMode, setEvaluationMode] = useState<'simple' | 'avanzada'>('simple');
   const [currentUser, setCurrentUser] = useState<string | null>(null);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
 
@@ -120,11 +122,8 @@ export function App() {
             <div className="h-6 w-px bg-white/30 hidden xs:block" />
             <div className="flex flex-col justify-center">
               <div className="flex items-center gap-1.5">
-                <span className="font-extrabold text-xs tracking-tight text-white block leading-none drop-shadow-sm">
+                <span className="font-extrabold text-xs sm:text-sm tracking-tight text-white block leading-none drop-shadow-sm">
                   SENSORIAL
-                </span>
-                <span className="text-[9px] font-black px-2 py-0.5 rounded-full bg-[#5969E6] text-white uppercase tracking-wider shadow-md border border-white/20">
-                  Cata
                 </span>
               </div>
               <span className="text-[9px] uppercase font-bold tracking-wider text-white/90 leading-none mt-1">
@@ -133,7 +132,37 @@ export function App() {
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 sm:gap-3">
+            {/* SWITCH MODO: SIMPLE / AVANZADA */}
+            {view === 'form' && (
+              <div className="bg-black/20 p-1 rounded-xl flex items-center gap-1 shadow-inner backdrop-blur-sm border border-white/20">
+                <button
+                  type="button"
+                  onClick={() => setEvaluationMode('simple')}
+                  className={`text-xs font-black px-2.5 sm:px-3 py-1 rounded-lg flex items-center gap-1.5 transition-all ${
+                    evaluationMode === 'simple'
+                      ? 'bg-white text-[#FC7572] shadow-md scale-100'
+                      : 'text-white/80 hover:text-white hover:bg-white/10'
+                  }`}
+                >
+                  <FileText className="w-3.5 h-3.5" />
+                  <span>Simple</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setEvaluationMode('avanzada')}
+                  className={`text-xs font-black px-2.5 sm:px-3 py-1 rounded-lg flex items-center gap-1.5 transition-all ${
+                    evaluationMode === 'avanzada'
+                      ? 'bg-[#5969E6] text-white shadow-md scale-100'
+                      : 'text-white/80 hover:text-white hover:bg-white/10'
+                  }`}
+                >
+                  <SlidersHorizontal className="w-3.5 h-3.5" />
+                  <span>Avanzada</span>
+                </button>
+              </div>
+            )}
+
             {view === 'admin' && (
               <button
                 onClick={handleBackToForm}
@@ -148,11 +177,13 @@ export function App() {
       </header>
 
       {/* Vista activa con transición fluida GSAP */}
-      <main key={view} className="flex-1 flex flex-col animate-fade-in">
+      <main key={`${view}_${evaluationMode}`} className="flex-1 flex flex-col animate-fade-in">
         {view === 'form' ? (
-          <EvaluationForm
-            onOpenAdmin={handleOpenAdmin}
-          />
+          evaluationMode === 'simple' ? (
+            <SimpleEvaluationForm onOpenAdmin={handleOpenAdmin} />
+          ) : (
+            <EvaluationForm onOpenAdmin={handleOpenAdmin} />
+          )
         ) : (
           <AdminDashboard
             onBack={handleBackToForm}

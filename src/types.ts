@@ -55,6 +55,52 @@ export interface SensorialEvaluationRecord extends SensorialFormAnswers {
   saved_by_email?: string;
 }
 
+// CUESTIONARIO DE EVALUACIÓN SENSORIAL SIMPLE (INF-D003 VERSIÓN 3)
+export interface SimpleSensorialSample {
+  gusto: string;
+  codigoMuestra: string;
+
+  // 1. VISTA
+  v1_color: string;
+  v2_cantidad_mezclado: string;
+  v3_ingredientes: string;
+  v4_sellado: string;
+  v5_caramelizacion: string;
+
+  // 2. OLFATO
+  o1_aroma: string;
+
+  // 3. BOCA
+  b1_primer_mordisco: string;
+  b2_textura: string;
+  b3_sal_dulce_picante: string;
+  b4_sabor: string;
+  b5_sabor_post_tragar: string;
+
+  // 4. GLOBAL
+  g1_diferencias_estandar: string;
+  g2_general_mejoras: string;
+  g3_aprobacion: string;
+}
+
+export interface SimpleSensorialForm {
+  codigoForm: string; // INF-D003
+  version: string; // 3
+  vigencia: string; // 2026
+  fecha: string;
+  hora: string;
+  evaluador: string;
+  loteBatea: string;
+  muestras: SimpleSensorialSample[];
+  firmaEvaluador?: string;
+}
+
+export interface SimpleSensorialRecord extends SimpleSensorialForm {
+  id?: string;
+  created_at?: string;
+  saved_by_email?: string;
+}
+
 export const EMPANADAS_GUSTOS = [
   'American Chicken',
   'Big Burger',
