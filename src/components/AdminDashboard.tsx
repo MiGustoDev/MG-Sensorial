@@ -77,6 +77,26 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     }
   }, [selectedEvaluation]);
 
+  const DASHBOARD_COLUMNS = 'id, created_at, fecha, hora, evaluador, lote_batea, gusto, codigo_muestra, v1_color, v2_cantidad, v3_mezclado, v4_ingredientes_receta, v5_ingrediente_extrano, v6_sellado_carne, v7_rehogado_vegetales, v8_caramelizacion, obs_vista, o1_intensidad_aroma, o2_aroma_caracteristico, o3_olor_extrano, obs_olfato, b1_primer_impacto, b2_textura_masa, b3_jugosidad_relleno, b4_textura_carne, b5_sal, b6_dulce, b7_picante, b8_sabor_caracteristico, b9_ingrediente_tapa, b10_sabor_extrano, b11_retrogusto, obs_boca, g1_estandar_gusto, g2_gusto_general, g3_aprobacion, obs_global, firma_evaluador, saved_by_email';
+
+  const handleSelectEvaluation = async (evaluation: SensorialEvaluationRecord) => {
+    setSelectedEvaluation(evaluation);
+    if (evaluation.id && !evaluation.id.startsWith('local_') && (!evaluation.fotos || evaluation.fotos.length === 0)) {
+      try {
+        const { data } = await supabase
+          .from('sensorial_evaluations_v2')
+          .select('fotos')
+          .eq('id', evaluation.id)
+          .single();
+        if (data?.fotos) {
+          setSelectedEvaluation(prev => (prev && prev.id === evaluation.id ? { ...prev, fotos: data.fotos } : prev));
+        }
+      } catch (e) {
+        console.warn('Error al cargar fotos en demanda:', e);
+      }
+    }
+  };
+
   const fetchEvaluations = async () => {
     setLoading(true);
     try {
@@ -86,7 +106,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
       const { data, error } = await supabase
         .from('sensorial_evaluations_v2')
-        .select('*')
+        .select(DASHBOARD_COLUMNS)
         .order('created_at', { ascending: false });
 
       if (error) {
@@ -739,7 +759,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
             return (
               <div
                 key={ev.id || Math.random()}
-                onClick={() => setSelectedEvaluation(ev)}
+                onClick={() => handleSelectEvaluation(ev)}
                 className="bg-[#fdfbf7] p-4 rounded-2xl border border-[#ded4c3] shadow-xs active:scale-[0.99] transition-transform space-y-2.5 cursor-pointer"
               >
                 <div className="flex items-start justify-between gap-2">
@@ -908,7 +928,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                             <BarChart3 className="w-4 h-4" />
                           </button>
                           <button
-                            onClick={() => setSelectedEvaluation(ev)}
+                            onClick={() => handleSelectEvaluation(ev)}
                             title="Ver Cuestionario Completo"
                             className="w-8 h-8 rounded-xl bg-[#eeedfc] border border-[#d7d4f9] text-[#4f46e5] hover:bg-[#4f46e5] hover:text-white transition-all flex items-center justify-center shadow-2xs active:scale-95"
                           >
