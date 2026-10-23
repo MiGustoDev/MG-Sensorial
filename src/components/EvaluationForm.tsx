@@ -3,6 +3,12 @@ import { createPortal } from 'react-dom';
 import type { SensorialFormAnswers } from '../types';
 import { EMPANADAS_GUSTOS, formatDisplayDate } from '../types';
 import { supabase } from '../lib/supabase';
+import {
+  saveToLocalStorage,
+  mapPayloadToSupabase,
+  syncPendingEvaluations,
+  compressImage
+} from '../lib/syncService';
 import { AnimatedBar, AnimatedNumber } from '../utils/gsapAnimations';
 import {
   CheckCircle2,
@@ -58,6 +64,12 @@ export const EvaluationForm: React.FC<EvaluationFormProps> = ({ onSavedSuccess }
   const [analysisStageText, setAnalysisStageText] = useState('Iniciando auditoría sensorial...');
   const [showThankYou, setShowThankYou] = useState(false);
   const [submittedSignature, setSubmittedSignature] = useState<string>('');
+  const [isSavedOnline, setIsSavedOnline] = useState<boolean | null>(null);
+
+  // Intentar sincronizar evaluaciones pendientes al montar el componente
+  useEffect(() => {
+    syncPendingEvaluations().catch(err => console.warn('Error en autosync:', err));
+  }, []);
 
   // Bloquear scroll de la página durante la pantalla de análisis
   useEffect(() => {
@@ -246,18 +258,19 @@ export const EvaluationForm: React.FC<EvaluationFormProps> = ({ onSavedSuccess }
     }
   };
 
-  const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files) return;
     const files = Array.from(e.target.files);
-    files.forEach(file => {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        if (reader.result) {
-          setPhotos(prev => [...prev, reader.result as string]);
+    for (const file of files) {
+      try {
+        const compressed = await compressImage(file, 1200, 0.75);
+        if (compressed) {
+          setPhotos(prev => [...prev, compressed]);
         }
-      };
-      reader.readAsDataURL(file);
-    });
+      } catch (err) {
+        console.warn('Error procesando foto:', err);
+      }
+    }
   };
 
   const removePhoto = (idx: number) => {
@@ -421,60 +434,40 @@ export const EvaluationForm: React.FC<EvaluationFormProps> = ({ onSavedSuccess }
       fotos: photos
     };
 
-    // Guardado asíncrono en Supabase / LocalStorage
+    // 1. Guardar de inmediato en almacenamiento local (Garantía total offline)
+    const localRecordId = 'local_' + Date.now();
+    saveToLocalStorage({
+      ...payload,
+      id: localRecordId,
+      created_at: new Date().toISOString()
+    });
+
+    // 2. Guardado en Supabase con resolución asíncrona
     const savePromise = (async () => {
       try {
-        const { error } = await supabase
+        const dbPayload = mapPayloadToSupabase(payload);
+        const { data, error } = await supabase
           .from('sensorial_evaluations_v2')
-          .insert([{
-            fecha: payload.fecha,
-            hora: payload.hora,
-            evaluador: payload.evaluador,
-            lote_batea: payload.loteBatea,
-            gusto: payload.gusto,
-            codigo_muestra: payload.codigoMuestra,
-            v1_color: payload.v1_color,
-            v2_cantidad: payload.v2_cantidad,
-            v3_mezclado: payload.v3_mezclado,
-            v4_ingredientes_receta: payload.v4_ingredientesReceta,
-            v5_ingrediente_extrano: payload.v5_ingredienteExtrano,
-            v6_sellado_carne: payload.v6_selladoCarne,
-            v7_rehogado_vegetales: payload.v7_rehogadoVegetales,
-            v8_caramelizacion: payload.v8_caramelizacion,
-            obs_vista: payload.obs_vista,
-            o1_intensidad_aroma: payload.o1_intensidadAroma,
-            o2_aroma_caracteristico: payload.o2_aromaCaracteristico,
-            o3_olor_extrano: payload.o3_olorExtrano,
-            obs_olfato: payload.obs_olfato,
-            b1_primer_impacto: payload.b1_primerImpacto,
-            b2_textura_masa: payload.b2_texturaMasa,
-            b3_jugosidad_relleno: payload.b3_jugosidadRelleno,
-            b4_textura_carne: payload.b4_texturaCarne,
-            b5_sal: payload.b5_sal,
-            b6_dulce: payload.b6_dulce,
-            b7_picante: payload.b7_picante,
-            b8_sabor_caracteristico: payload.b8_saborCaracteristico,
-            b9_ingrediente_tapa: payload.b9_ingredienteTapa,
-            b10_sabor_extrano: payload.b10_saborExtrano,
-            b11_retrogusto: payload.b11_retrogusto,
-            obs_boca: payload.obs_boca,
-            g1_estandar_gusto: payload.g1_estandarGusto,
-            g2_gusto_general: payload.g2_gustoGeneral,
-            g3_aprobacion: payload.g3_aprobacion,
-            obs_global: payload.obs_global,
-            firma_evaluador: payload.firmaEvaluador,
-            fotos: payload.fotos,
-            saved_by_email: localStorage.getItem('mg_sensorial_admin_user') || 'control_calidad@migusto.com.ar'
-          }]);
+          .insert([dbPayload])
+          .select();
 
         if (error) {
-          console.warn('Supabase fallback to local storage:', error);
-          const local = JSON.parse(localStorage.getItem('mg_sensorial_official_history') || '[]');
-          local.unshift({ ...payload, id: 'local_' + Date.now(), created_at: new Date().toISOString() });
-          localStorage.setItem('mg_sensorial_official_history', JSON.stringify(local));
+          console.warn('Supabase retornó error, queda en cola offline:', error);
+          setIsSavedOnline(false);
+        } else if (data && data[0]) {
+          // Reemplazar id provisional con el ID real devuelto por Supabase
+          saveToLocalStorage({
+            ...payload,
+            id: data[0].id,
+            created_at: data[0].created_at
+          });
+          setIsSavedOnline(true);
+          // Intentar sincronizar otros pendientes si los hubiera
+          syncPendingEvaluations().catch(console.warn);
         }
       } catch (err: any) {
-        console.error(err);
+        console.warn('Excepción de red al enviar a Supabase (offline seguro):', err);
+        setIsSavedOnline(false);
       }
     })();
 
@@ -1829,9 +1822,21 @@ export const EvaluationForm: React.FC<EvaluationFormProps> = ({ onSavedSuccess }
           </div>
 
           <div>
-            <span className="text-[10px] sm:text-xs font-black uppercase tracking-wider text-emerald-600 bg-emerald-50 px-3.5 py-1 rounded-full border border-emerald-200">
-              Evaluación Registrada con Éxito
-            </span>
+            <div className="flex items-center justify-center gap-2 flex-wrap mb-2">
+              <span className="text-[10px] sm:text-xs font-black uppercase tracking-wider text-emerald-600 bg-emerald-50 px-3.5 py-1 rounded-full border border-emerald-200">
+                Evaluación Registrada con Éxito
+              </span>
+              {isSavedOnline === true && (
+                <span className="text-[10px] sm:text-xs font-bold text-sky-700 bg-sky-50 px-2.5 py-1 rounded-full border border-sky-200">
+                  ☁️ Sincronizado en Base de Datos
+                </span>
+              )}
+              {isSavedOnline === false && (
+                <span className="text-[10px] sm:text-xs font-bold text-amber-700 bg-amber-50 px-2.5 py-1 rounded-full border border-amber-200">
+                  💾 Guardado en Celular (Auto-sincronizará al haber conexión)
+                </span>
+              )}
+            </div>
             <h2 className="text-xl sm:text-3xl font-black text-[#2c2724] mt-3">
               ¡Muchas gracias, {evaluador}!
             </h2>

@@ -2,12 +2,19 @@ import { useState, useEffect, useCallback } from 'react';
 import { EvaluationForm } from './components/EvaluationForm';
 import { AdminDashboard } from './components/AdminDashboard';
 import { AuthModal } from './components/AuthModal';
-import { QrCode } from 'lucide-react';
+import { QrCode, RefreshCw } from 'lucide-react';
+import {
+  syncPendingEvaluations,
+  getPendingEvaluations,
+  SYNC_EVENT_NAME
+} from './lib/syncService';
 
 export function App() {
   const [view, setView] = useState<'form' | 'admin'>('form');
   const [currentUser, setCurrentUser] = useState<string | null>(null);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [pendingCount, setPendingCount] = useState(() => getPendingEvaluations().length);
+  const [isSyncingGlobal, setIsSyncingGlobal] = useState(false);
 
   // Helper para verificar si la URL actual corresponde a /admin
   const checkIsAdminRoute = useCallback(() => {
@@ -59,9 +66,25 @@ export function App() {
 
     window.addEventListener('popstate', handleLocationChange);
     window.addEventListener('hashchange', handleLocationChange);
+
+    // Auto-sincronización inicial y al recuperar conectividad
+    syncPendingEvaluations().catch(console.warn);
+
+    const handleOnline = () => {
+      syncPendingEvaluations().catch(console.warn);
+    };
+    const handleSyncUpdate = () => {
+      setPendingCount(getPendingEvaluations().length);
+    };
+
+    window.addEventListener('online', handleOnline);
+    window.addEventListener(SYNC_EVENT_NAME, handleSyncUpdate);
+
     return () => {
       window.removeEventListener('popstate', handleLocationChange);
       window.removeEventListener('hashchange', handleLocationChange);
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener(SYNC_EVENT_NAME, handleSyncUpdate);
     };
   }, [checkIsAdminRoute]);
 
@@ -134,6 +157,20 @@ export function App() {
           </div>
 
           <div className="flex items-center gap-2">
+            {pendingCount > 0 && (
+              <button
+                onClick={async () => {
+                  setIsSyncingGlobal(true);
+                  await syncPendingEvaluations();
+                  setIsSyncingGlobal(false);
+                }}
+                title="Sincronizar evaluaciones guardadas en este dispositivo con la base de datos"
+                className="text-[11px] font-bold px-2.5 py-1.5 rounded-xl bg-amber-400 hover:bg-amber-300 text-amber-950 active:scale-95 transition-all flex items-center gap-1.5 shadow-sm animate-pulse"
+              >
+                <RefreshCw className={`w-3.5 h-3.5 ${isSyncingGlobal ? 'animate-spin' : ''}`} />
+                <span>Sincronizar ({pendingCount})</span>
+              </button>
+            )}
             {view === 'admin' && (
               <button
                 onClick={handleBackToForm}
@@ -146,6 +183,29 @@ export function App() {
           </div>
         </div>
       </header>
+
+      {/* Banner de alerta de evaluaciones offline pendientes en este dispositivo */}
+      {pendingCount > 0 && (
+        <div className="bg-amber-500 text-white text-xs font-semibold px-4 py-2 flex items-center justify-between shadow-inner">
+          <div className="flex items-center gap-2">
+            <span className="text-sm">⚠️</span>
+            <span>
+              Tenés <strong>{pendingCount}</strong> evaluación/es guardadas en este dispositivo pendientes de sincronizar con Supabase.
+            </span>
+          </div>
+          <button
+            onClick={async () => {
+              setIsSyncingGlobal(true);
+              await syncPendingEvaluations();
+              setIsSyncingGlobal(false);
+            }}
+            disabled={isSyncingGlobal}
+            className="bg-white text-amber-950 font-bold px-3 py-1 rounded-lg text-[11px] uppercase tracking-wider hover:bg-amber-50 active:scale-95 transition-all disabled:opacity-50"
+          >
+            {isSyncingGlobal ? 'Sincronizando...' : 'Sincronizar Ahora'}
+          </button>
+        </div>
+      )}
 
       {/* Vista activa con transición fluida GSAP */}
       <main key={view} className="flex-1 flex flex-col animate-fade-in">

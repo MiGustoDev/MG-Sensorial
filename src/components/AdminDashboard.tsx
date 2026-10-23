@@ -2,6 +2,11 @@ import { useState, useEffect, useRef } from 'react';
 import type { SensorialEvaluationRecord } from '../types';
 import { formatDisplayDate } from '../types';
 import { supabase } from '../lib/supabase';
+import {
+  syncPendingEvaluations,
+  getPendingEvaluations,
+  SYNC_EVENT_NAME
+} from '../lib/syncService';
 import { AnimatedNumber, AnimatedBar, SmoothModal, AnimatedDonutChart, AnimatedRadialGauge } from '../utils/gsapAnimations';
 import {
   ArrowLeft,
@@ -37,6 +42,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterAprobacion, setFilterAprobacion] = useState<string>('ALL');
+  const [pendingOfflineCount, setPendingOfflineCount] = useState(() => getPendingEvaluations().length);
+  const [isManualSyncing, setIsManualSyncing] = useState(false);
   const [isFilterDropdownOpen, setIsFilterDropdownOpen] = useState(false);
   const [selectedEvaluation, setSelectedEvaluation] = useState<SensorialEvaluationRecord | null>(null);
   const [selectedStats, setSelectedStats] = useState<SensorialEvaluationRecord | null>(null);
@@ -73,6 +80,10 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   const fetchEvaluations = async () => {
     setLoading(true);
     try {
+      // Auto-sincronizar cualquier registro pendiente en este dispositivo
+      await syncPendingEvaluations().catch(err => console.warn('Sync error:', err));
+      setPendingOfflineCount(getPendingEvaluations().length);
+
       const { data, error } = await supabase
         .from('sensorial_evaluations_v2')
         .select('*')
@@ -140,6 +151,12 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
   useEffect(() => {
     fetchEvaluations();
+
+    const handleSyncUpdate = () => {
+      setPendingOfflineCount(getPendingEvaluations().length);
+    };
+    window.addEventListener(SYNC_EVENT_NAME, handleSyncUpdate);
+    return () => window.removeEventListener(SYNC_EVENT_NAME, handleSyncUpdate);
   }, []);
 
   const handleConfirmDelete = async (closeWithAnimation: () => void) => {
@@ -388,6 +405,21 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
         </div>
 
         <div className="flex items-center gap-2">
+          {pendingOfflineCount > 0 && (
+            <button
+              onClick={async () => {
+                setIsManualSyncing(true);
+                await syncPendingEvaluations();
+                await fetchEvaluations();
+                setIsManualSyncing(false);
+              }}
+              title="Sincronizar evaluaciones pendientes guardadas offline"
+              className="py-2 px-3 rounded-2xl bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold shadow-md active:scale-95 transition-all flex items-center gap-1.5 animate-pulse"
+            >
+              <RefreshCw className={`w-3.5 h-3.5 ${isManualSyncing ? 'animate-spin' : ''}`} />
+              <span>Sincronizar ({pendingOfflineCount})</span>
+            </button>
+          )}
           <button
             onClick={fetchEvaluations}
             title="Recargar historial"
