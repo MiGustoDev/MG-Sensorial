@@ -2,14 +2,33 @@ import { supabase } from './supabase';
 import type { SensorialFormAnswers, SensorialEvaluationRecord } from '../types';
 
 export const OFFLINE_STORAGE_KEY = 'mg_sensorial_official_history';
+export const SIMPLE_STORAGE_KEY = 'mg_sensorial_evaluaciones_simple';
 export const SYNC_EVENT_NAME = 'mg_sensorial_sync_event';
+
+/**
+ * Convierte cualquier formato de fecha (ej: '23/10/2026' o ISO) a formato PostgreSQL YYYY-MM-DD
+ */
+export function toPostgresDate(dateStr?: string | null): string {
+  if (!dateStr) return new Date().toISOString().split('T')[0];
+  const clean = dateStr.trim();
+  if (/^\d{4}-\d{2}-\d{2}$/.test(clean)) return clean;
+  if (/^\d{1,2}\/\d{1,2}\/\d{4}$/.test(clean)) {
+    const [d, m, y] = clean.split('/');
+    return `${y}-${m.padStart(2, '0')}-${d.padStart(2, '0')}`;
+  }
+  const parsed = new Date(dateStr);
+  if (!isNaN(parsed.getTime())) {
+    return parsed.toISOString().split('T')[0];
+  }
+  return new Date().toISOString().split('T')[0];
+}
 
 /**
  * Convierte un objeto de respuestas de la app (camelCase) al formato de base de datos Supabase (snake_case)
  */
 export function mapPayloadToSupabase(payload: SensorialFormAnswers, savedByEmail?: string) {
   return {
-    fecha: payload.fecha,
+    fecha: toPostgresDate(payload.fecha),
     hora: payload.hora,
     evaluador: payload.evaluador,
     lote_batea: payload.loteBatea,
@@ -96,6 +115,22 @@ export function getPendingEvaluations(): SensorialEvaluationRecord[] {
   return getStoredEvaluations().filter(e => typeof e.id === 'string' && e.id.startsWith('local_'));
 }
 
+export function getTotalPendingCount(): number {
+  let count = getPendingEvaluations().length;
+  try {
+    const raw = localStorage.getItem(SIMPLE_STORAGE_KEY);
+    if (raw) {
+      const sheets: any[] = JSON.parse(raw);
+      for (const s of sheets) {
+        if (!s.synced) count += (s.muestras?.length || 1);
+      }
+    }
+  } catch (e) {
+    // ignore
+  }
+  return count;
+}
+
 /**
  * Intenta sincronizar todas las evaluaciones pendientes con Supabase
  */
@@ -104,46 +139,122 @@ export async function syncPendingEvaluations(): Promise<{ synced: number; failed
   if (isSyncing) return { synced: 0, failed: 0 };
   
   const pending = getPendingEvaluations();
-  if (pending.length === 0) return { synced: 0, failed: 0 };
+  const totalCount = getTotalPendingCount();
+  if (totalCount === 0) return { synced: 0, failed: 0 };
 
   isSyncing = true;
   let synced = 0;
   let failed = 0;
 
   try {
-    const allStored = getStoredEvaluations();
+    // 1. Sincronizar evaluaciones del formulario avanzado
+    if (pending.length > 0) {
+      const allStored = getStoredEvaluations();
 
-    for (const record of pending) {
-      try {
-        const dbPayload = mapPayloadToSupabase(record, record.saved_by_email);
-        const { data, error } = await supabase
-          .from('sensorial_evaluations_v2')
-          .insert([dbPayload])
-          .select();
+      for (const record of pending) {
+        try {
+          const dbPayload = mapPayloadToSupabase(record, record.saved_by_email);
+          const { data, error } = await supabase
+            .from('sensorial_evaluations_v2')
+            .insert([dbPayload])
+            .select();
 
-        if (error) {
-          console.warn(`[Sync] Error sincronizando registro ${record.id}:`, error);
-          failed++;
-        } else if (data && data[0]) {
-          const insertedRow = data[0];
-          // Actualizar id local con el ID real de Supabase
-          const idx = allStored.findIndex(item => item.id === record.id);
-          if (idx >= 0) {
-            allStored[idx] = {
-              ...allStored[idx],
-              id: insertedRow.id,
-              created_at: insertedRow.created_at
-            };
+          if (error) {
+            console.warn(`[Sync] Error sincronizando registro ${record.id}:`, error);
+            failed++;
+          } else if (data && data[0]) {
+            const insertedRow = data[0];
+            const idx = allStored.findIndex(item => item.id === record.id);
+            if (idx >= 0) {
+              allStored[idx] = {
+                ...allStored[idx],
+                id: insertedRow.id,
+                created_at: insertedRow.created_at
+              };
+            }
+            synced++;
           }
-          synced++;
+        } catch (err) {
+          console.error(`[Sync] Excepción al sincronizar ${record.id}:`, err);
+          failed++;
         }
-      } catch (err) {
-        console.error(`[Sync] Excepción al sincronizar ${record.id}:`, err);
-        failed++;
       }
+
+      localStorage.setItem(OFFLINE_STORAGE_KEY, JSON.stringify(allStored));
     }
 
-    localStorage.setItem(OFFLINE_STORAGE_KEY, JSON.stringify(allStored));
+    // 2. Sincronizar evaluaciones del formulario simple si las hubiera
+    try {
+      const rawSimple = localStorage.getItem(SIMPLE_STORAGE_KEY);
+      if (rawSimple) {
+        const simpleSheets: any[] = JSON.parse(rawSimple);
+        let simpleUpdated = false;
+
+        for (const sheet of simpleSheets) {
+          if (sheet.synced) continue;
+          const muestras = sheet.muestras || [];
+          if (muestras.length === 0) continue;
+
+          const rowsToInsert = muestras.map((m: any) => ({
+            fecha: toPostgresDate(sheet.fecha),
+            hora: sheet.hora,
+            evaluador: (sheet.evaluador || '').trim(),
+            lote_batea: (sheet.loteBatea || '').trim(),
+            gusto: m.gusto,
+            codigo_muestra: m.codigoMuestra || 'INF-D003-V3',
+            v1_color: m.v1_color || 'Simple',
+            v2_cantidad: 'Justo',
+            v3_mezclado: 'Parejo',
+            v4_ingredientes_receta: 'Sí',
+            v5_ingrediente_extrano: 'No',
+            v6_sellado_carne: 'Dorada y jugosa',
+            v7_rehogado_vegetales: 'Justo',
+            v8_caramelizacion: 'Justa',
+            obs_vista: `[V1 Color]: ${m.v1_color || ''}\n[V2 Relleno/Mezclado]: ${m.v2_cantidad_mezclado || ''}\n[V3 Ingredientes]: ${m.v3_ingredientes || ''}\n[V4 Sellado]: ${m.v4_sellado || ''}\n[V5 Caramelización]: ${m.v5_caramelizacion || ''}`.trim(),
+            o1_intensidad_aroma: 'Justa',
+            o2_aroma_caracteristico: 'Sí',
+            o3_olor_extrano: ['No'],
+            obs_olfato: `[O1 Aroma]: ${m.o1_aroma || ''}`.trim(),
+            b1_primer_impacto: ['Masa'],
+            b2_textura_masa: 'Tierna',
+            b3_jugosidad_relleno: 'Jugoso',
+            b4_textura_carne: 'Tierna',
+            b5_sal: 'Justa',
+            b6_dulce: 'Justo',
+            b7_picante: 'Justo',
+            b8_sabor_caracteristico: 'Justo',
+            b9_ingrediente_tapa: 'No',
+            b10_sabor_extrano: ['No'],
+            b11_retrogusto: 'Agradable',
+            obs_boca: `[B1 Primer mordisco]: ${m.b1_primer_mordisco || ''}\n[B2 Textura]: ${m.b2_textura || ''}\n[B3 Sal/Dulce/Picante]: ${m.b3_sal_dulce_picante || ''}\n[B4 Sabor]: ${m.b4_sabor || ''}\n[B5 Retrogusto]: ${m.b5_sabor_post_tragar || ''}`.trim(),
+            g1_estandar_gusto: 'Igual',
+            g2_gusto_general: 5,
+            g3_aprobacion: (m.g3_aprobacion || '').toLowerCase().includes('no') ? 'No' : 'Sí',
+            obs_global: `[G1 Diferencias estándar]: ${m.g1_diferencias_estandar || ''}\n[G2 General y mejoras]: ${m.g2_general_mejoras || ''}\n[G3 Aprobación / Por qué]: ${m.g3_aprobacion || ''}\n[FORMATO]: Cuestionario Simple INF-D003 V3`.trim(),
+            firma_evaluador: sheet.firmaEvaluador || sheet.evaluador,
+            fotos: [],
+            saved_by_email: localStorage.getItem('mg_sensorial_admin_user') || 'control_calidad@migusto.com.ar'
+          }));
+
+          const { error: simpleErr } = await supabase.from('sensorial_evaluations_v2').insert(rowsToInsert);
+          if (!simpleErr) {
+            sheet.synced = true;
+            simpleUpdated = true;
+            synced += rowsToInsert.length;
+          } else {
+            console.warn('[Sync Simple] Error:', simpleErr);
+            failed += rowsToInsert.length;
+          }
+        }
+
+        if (simpleUpdated) {
+          localStorage.setItem(SIMPLE_STORAGE_KEY, JSON.stringify(simpleSheets));
+        }
+      }
+    } catch (e) {
+      console.warn('Error sincronizando planillas simples:', e);
+    }
+
     notifySyncChange();
   } finally {
     isSyncing = false;
